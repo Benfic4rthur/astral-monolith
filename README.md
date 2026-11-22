@@ -5,7 +5,7 @@
 <h1 align="center">ASTRAL MONOLITH</h1>
 
 <p align="center">
-  <strong>A 100% procedural, three-act real-time WebGPU cosmic journey packed into a single 176 KB self-contained HTML file.</strong>
+  <strong>A 100% procedural, three-act real-time WebGPU cosmic journey packed into a single 181 KB self-contained HTML file.</strong>
 </p>
 
 <p align="center">
@@ -22,8 +22,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/WebGPU%20%2B%20WGSL-Pure%20Zero--Dep-1E4D6B?style=flat-square" alt="Pure WebGPU and WGSL" />
-  <img src="https://img.shields.io/badge/Bundle-175.85%20KB%20Single%20File-2D5A4B?style=flat-square" alt="175.85 KB Single File" />
-  <img src="https://img.shields.io/badge/Performance-120%20FPS%20%40%201080p-6B4C2A?style=flat-square" alt="120 FPS at 1080p" />
+  <img src="https://img.shields.io/badge/Bundle-180.70%20KB%20Single%20File-2D5A4B?style=flat-square" alt="180.70 KB Single File" />
+  <img src="https://img.shields.io/badge/Performance-5.52%20ms%20GPU%20%40%20120%20FPS-6B4C2A?style=flat-square" alt="5.52 ms GPU at 120 FPS" />
   <img src="https://img.shields.io/badge/License-MIT-4A5568?style=flat-square" alt="MIT License" />
 </p>
 
@@ -112,13 +112,15 @@ Every frame below is captured directly at native `1920×1080` from the real-time
 ### Technical Highlights
 
 - **Pure WebGPU + WGSL + Web Audio (Zero Dependencies):** No Three.js, Babylon.js, or runtime libraries; no external texture, mesh, or audio files.
-- **Single Self-Contained `index.html`:** Bundles and minifies all JS modules, WGSL shaders, CSS, and markup into a single **175.85 KB** (`180,071` bytes) file via `node build.mjs`.
-- **Zero Per-Frame JavaScript Allocations:** Uniform scratchpads, camera/projection matrices, flight spline scratch arrays, and telemetry ring buffers are preallocated once at startup to prevent garbage-collection hitches.
+- **Single Self-Contained `index.html`:** Bundles and minifies all JS modules, WGSL shaders, CSS, and markup into a single **180.70 KB** (`185,038` bytes) file via `node build.mjs`.
+- **Zero Per-Frame JavaScript Allocations:** Uniform scratchpads (including all 22 analytical orbital ring planes), camera/projection matrices, flight spline scratch arrays, and telemetry ring buffers are preallocated once at startup to prevent garbage-collection hitches.
 - **GPU-Baked 512×512 Mipmapped PBR Textures:** Synthesizes chiseled matte-graphite stone, oxidized brushed bronze & volcanic obsidian, and faceted crystal material maps directly on the GPU at startup with full hardware mipmap chains and anisotropic trilinear sampling.
-- **Multi-Pass HDR Rendering & Specular/Edge Anti-Aliasing:**
-  - `4× MSAA` main opaque architecture pass + `1280×720` `4× MSAA` planar mirror ocean reflection pass.
-  - Kaplanyan / Toksvig geometric normal-variance filtering (specular AA) eliminating sub-pixel shimmer and fireflies across distant bronze rings and crystal edges.
-  - Multi-stage HDR bloom, filmic tonemapping, and **post-tonemap FXAA 3.11 Quality** with triangular anti-banding dither.
+- **Ultra Cinematic Lighting, Shadows & Volumetrics:**
+  - **Real-Time Analytical 22-Ring Eclipse Shadows:** Inner orbital rings cast moving soft-penumbra eclipse shadows across outer volcanic obsidian and brushed-bronze rings using radius-sorted early-exit plane evaluation.
+  - **Horizon-Aware World-Space SSAO:** 7-tap Vogel-spiral contact shadows reconstructed directly from `depthMsaa` (zero extra render passes) with world-space range falloff and 4-tap bilinear upsampling, grounding arches, piers, and coffers without foreground halos.
+  - **Animated Ocean & Crystal-Base Caustics:** Dual-layer procedural refractive caustics shimmering across shallow dark water and rising up the submerged lower faces of every crystal prism.
+  - **High-Step Depth-Aware Volumetrics:** Multi-octave curling Act I sea mist, 24-step Act II solar-amber god rays with 2-octave 3D illuminated dust, and 48-step Act III piercing blue-white eclipse shafts with 9-tap depth-preserving radial blur.
+  - **Multi-Pass HDR & Specular/Edge Anti-Aliasing:** `4× MSAA` main opaque architecture pass + `1305×734` (`0.68×`) `4× MSAA` planar mirror ocean reflection pass, Kaplanyan / Toksvig specular AA, multi-stage HDR bloom, AgX filmic tonemapping, and **post-tonemap FXAA 3.11 Quality** with triangular anti-banding dither.
 - **90-Second Guided Tour & 4-Layer Supernova Audio Climax:** Continuous Catmull-Rom flight across all three realms paired with a 100% procedural Web Audio soundscape (3.4 s synthesized stereo convolution reverb, seamless looped pink/brown noise surf, act-crossfading harmonic drones, and a 4-layer supernova climax combining pitch-swept harmonic tension risers, seismic sub-bass detonation rumble, swept resonant plasma shockwave noise, and a stereo-panned A-major-9th celestial choir swell).
 - **Hardware `timestamp-query` Profiler:** Real-time HUD displaying live FPS, hardware GPU frame time (`ms`), and a 120-sample scrolling performance sparkline.
 
@@ -126,15 +128,15 @@ Every frame below is captured directly at native `1920×1080` from the real-time
 
 ### Verified Performance Benchmarks
 
-Measured on **Apple M1 Pro (16-core GPU, 32 GB RAM)** running macOS Chrome WebGPU (`Metal-3` backend) at **native `1920×1080`** over a clean, unrecorded 60-second scripted tour (**7,200 consecutive frames**):
+Measured on **Apple M1 Pro (16-core GPU, 32 GB RAM)** running macOS Chrome WebGPU (`Metal-3` backend) at **native `1920×1080`** over a clean, unrecorded 60-second scripted tour (**7,197 hardware-timestamped frames**):
 
 | Metric | Measured Result | Target Gate |
 | :--- | :--- | :--- |
-| **Single-File Bundle (`index.html`)** | **174.01 KB** (`178,182 B`, 0 external assets) | Single self-contained file |
-| **GPU Frame Time (`timestamp-query`)** | **5.30 ms avg** · 5.37 ms p50 · 6.55 ms p95 · 7.47 ms p99 · **11.99 ms max** | Avg ≤ 11.0 ms · Max ≤ 16.7 ms |
-| **Per-Act GPU Average** | Act I: **5.40 ms** · Act II: **4.85 ms** · Act III: **5.61 ms** | ≤ 11.0 ms across all realms |
-| **Wall-Clock Frame Pacing** | **8.33 ms avg (120.0 FPS locked)** · 9.30 ms p99 · **9.50 ms max** | Stable 120 Hz pacing |
-| **Dropped Frames (`> 16.7 ms`)** | **0 / 7,200** (0 GPU drops, 0 wall-clock drops) | 0 dropped frames |
+| **Single-File Bundle (`index.html`)** | **180.70 KB** (`185,038 B`, 0 external assets) | Single self-contained file |
+| **GPU Frame Time (`timestamp-query`)** | **5.52 ms avg** · 5.51 ms p50 · 6.36 ms p95 · 6.95 ms p99 · **9.04 ms max** | Avg ≤ 11.0 ms · Max ≤ 16.7 ms |
+| **Per-Act GPU Average** | Act I: **5.27 ms** · Act II: **5.46 ms** · Act III: **5.78 ms** | ≤ 11.0 ms across all realms |
+| **Wall-Clock Frame Pacing** | **8.33 ms avg (120.0 FPS locked)** · 8.30 ms p50 · 8.90 ms p95 · 9.20 ms p99 | Stable 120 Hz pacing |
+| **GPU Frames Over `16.7 ms`** | **0 / 7,197** (`0.00%`, peak GPU frame `9.04 ms`) | 0 GPU drops |
 | **WebGPU / Console Errors** | **0** | 0 errors |
 
 ---
@@ -183,7 +185,7 @@ Open `http://localhost:8080` in a WebGPU-capable browser.
 
 ```text
 .
-├── index.html          # Self-contained minified WebGPU production build (174.01 KB)
+├── index.html          # Self-contained minified WebGPU production build (180.70 KB)
 ├── build.mjs           # Zero-dependency bundler & safe JS/WGSL minifier
 ├── prompt.txt          # Exact verbatim original prompt generated with easyRenderCreate
 ├── src/

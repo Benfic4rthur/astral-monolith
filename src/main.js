@@ -20,9 +20,9 @@ const MAX_PERF_FRAMES = 16384;
 
 const ACT_NAMES = ['I · MIRRORED PRISM SEA', 'II · FRACTAL CATHEDRAL', 'III · ORBITAL ASTROLABE'];
 
-// Preallocated frame-loop math scratchpad (ZERO allocations per frame!)
-const uMainData = new Float32Array(84);
-const uReflData = new Float32Array(84);
+// Preallocated frame-loop math scratchpad (ZERO allocations per frame! 196 floats includes 22 analytical ring eclipse shadow planes!)
+const uMainData = new Float32Array(196);
+const uReflData = new Float32Array(196);
 const mProj = new Float32Array(16);
 const mView = new Float32Array(16);
 const mVP = new Float32Array(16);
@@ -209,9 +209,9 @@ async function boot() {
 
   const partStorageBuf = makeBuf(partData.data, GPUBufferUsage.STORAGE);
 
-  // Uniform buffers
-  const uMainBuf = device.createBuffer({ size: 512, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-  const uReflBuf = device.createBuffer({ size: 512, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  // Uniform buffers (1024 bytes holds camera + 22 analytical astrolabe eclipse shadow planes!)
+  const uMainBuf = device.createBuffer({ size: 1024, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+  const uReflBuf = device.createBuffer({ size: 1024, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
 
   // Shared samplers (clamp for screen-space passes, anisotropic repeat+trilinear for 512x512 baked PBR textures!)
   const linSamp = device.createSampler({ magFilter: 'linear', minFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
@@ -339,6 +339,7 @@ async function boot() {
   const bglVolBlur = device.createBindGroupLayout({
     entries: [
       { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'depth', multisampled: true } },
       { binding: 2, visibility: GPUShaderStage.FRAGMENT, texture: { sampleType: 'float' } },
       { binding: 3, visibility: GPUShaderStage.FRAGMENT, sampler: { type: 'filtering' } },
     ],
@@ -608,8 +609,9 @@ async function boot() {
     canvas.width = W; canvas.height = H;
     ctx.configure({ device, format: swapFormat, alphaMode: 'opaque' });
 
-    const rW = Math.max(2, Math.floor(W * 0.67));
-    const rH = Math.max(2, Math.floor(H * 0.67));
+    // Ultra Cinematic 1305x734 (0.68x) 4x MSAA planar mirror reflection -> razor-sharp rippling ocean reflections with locked 60+ FPS headroom!
+    const rW = Math.max(2, Math.floor(W * 0.68));
+    const rH = Math.max(2, Math.floor(H * 0.68));
     const vW = Math.max(2, Math.floor(W * 0.5));
     const vH = Math.max(2, Math.floor(H * 0.5));
 
@@ -710,6 +712,7 @@ async function boot() {
       layout: bglVolBlur,
       entries: [
         { binding: 0, resource: { buffer: uMainBuf } },
+        { binding: 1, resource: depthMsaaView },
         { binding: 2, resource: volRawView },
         { binding: 3, resource: linSamp },
       ],
@@ -1086,6 +1089,21 @@ async function boot() {
     dst[81] = isRefl ? -0.35 : -9999.0;
     dst[82] = 1.0; // exposure multiplier
     dst[83] = supernovaAmt;
+
+    // Pack all 22 analytical orbital ring planes for real-time ring-on-ring eclipse shadow casting (zero allocations!)
+    const shells = astroData.ringShells;
+    for (let i = 0; i < 22; i++) {
+      const sh = shells[i];
+      const ax = sh.tiltX + Math.sin(time * 0.12 + sh.phase0) * sh.precAmp;
+      const ca = Math.cos(ax), sa = Math.sin(ax);
+      const cz = Math.cos(sh.tiltZ), sz = Math.sin(sh.tiltZ);
+      const o = 84 + i * 4;
+      dst[o]     = -ca * sz;
+      dst[o + 1] =  ca * cz;
+      dst[o + 2] =  sa;
+      dst[o + 3] =  sh.radius;
+      dst[172 + i] = sh.vertH * 0.48;
+    }
     device.queue.writeBuffer(buf, 0, dst);
   }
 
@@ -1319,8 +1337,11 @@ async function boot() {
 
     const isWarmup = frameIdx <= 3;
     const drawAct1 = isWarmup || ((actW[0] > 0.015 || actW[3] > 0.04) && camPos[1] > 0.4 && camPos[1] < 240);
-    // Always keep the cathedral rendered across Act I approach, Act II shaft, AND looking back down through the Oculus from space (ZERO pop-in!)
-    const drawCathedral = isWarmup || camPos[1] < 2600;
+    // Smart frustum check: always render cathedral in Acts I & II (ZERO portal pop-in!), and in Act III whenever looking toward the Oculus (ZERO reverse pop-in & ZERO wasted GPU behind camera!)
+    const oDx = WORLD.SHAFT_X - camPos[0], oDy = WORLD.OCULUS_Y - camPos[1], oDz = WORLD.SHAFT_Z - camPos[2];
+    const oDist = Math.hypot(oDx, oDy, oDz) || 1;
+    const lookingAtOculus = (oDx * camFwd[0] + oDy * camFwd[1] + oDz * camFwd[2]) / oDist > 0.10;
+    const drawCathedral = isWarmup || camPos[1] < 580 || (camPos[1] < 2600 && lookingAtOculus);
     const drawAstrolabe = isWarmup || actW[2] > 0.01 || camPos[1] > 180;
 
     if (drawAct1) {

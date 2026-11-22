@@ -191,13 +191,26 @@ struct U {
   starPos: vec4<f32>,    // xyz = white dwarf pos, w = pulsePhase
   starScreen: vec4<f32>, // xy = uv, z = depth, w = onScreenWeight
   res: vec4<f32>,        // x=w, y=h, z=1/w, w=1/h
-  flags: vec4<f32>,      // x=isRefl, y=clipY, z=exposure, w=unused
+  flags: vec4<f32>,      // x=isRefl, y=clipY, z=exposure, w=supernova
+  ringPlanes: array<vec4<f32>, 22>, // xyz = unit normal of orbital ring plane at time t, w = ring radius
+  ringHalfH: array<vec4<f32>, 6>,   // packed half-height (vertH * 0.48) for rings 0..21
 };
 
 const PI: f32 = 3.14159265359;
 const CATH_SUN_DIR: vec3<f32> = vec3<f32>(0.64, 0.65, 0.41);
 const SEA_SUN_DIR: vec3<f32> = vec3<f32>(0.72, 0.36, 0.59);
 const GAS_GIANT_DIR: vec3<f32> = vec3<f32>(-0.02, 0.242, -0.970);
+
+fn evalOceanCaustics(xz: vec2<f32>, t: f32) -> f32 {
+  // Dual-wave analytical liquid refractive caustics web dancing across shallow water & crystal bases!
+  let p1 = xz * 0.145 + vec2<f32>(t * 0.32, -t * 0.24);
+  let p2 = vec2<f32>(xz.x * 0.12 - xz.y * 0.15, xz.x * 0.15 + xz.y * 0.12) + vec2<f32>(-t * 0.27, t * 0.35);
+  let w1 = abs(sin(p1.x + cos(p1.y * 1.15 + t * 0.4)) + cos(p1.y - sin(p1.x * 1.10 - t * 0.35)));
+  let w2 = abs(sin(p2.x - cos(p2.y * 1.20 - t * 0.3)) + cos(p2.y + sin(p2.x * 1.05 + t * 0.45)));
+  let c1 = pow(clamp(1.0 - w1 * 0.52, 0.0, 1.0), 4.2);
+  let c2 = pow(clamp(1.0 - w2 * 0.52, 0.0, 1.0), 4.2);
+  return clamp((c1 + c2) * 0.72, 0.0, 1.25);
+}
 
 fn hash12(p: vec2<f32>) -> f32 {
   var p3 = fract(vec3<f32>(p.xyx) * 0.1031);
@@ -493,29 +506,32 @@ fn evalGasGiant(rd: vec3<f32>, t: f32, outAlpha: ptr<function, f32>) -> vec3<f32
 
 fn evalDeepSpace(rd: vec3<f32>, t: f32) -> vec3<f32> {
   let galLat = abs(dot(rd, normalize(vec3<f32>(0.32, 0.82, 0.48))));
-  let nebN = noise3(rd * 4.2 + vec3<f32>(1.2, 0.4, 2.7)) * 0.65 + noise3(rd * 9.5) * 0.35;
-  let nebBand = exp(-galLat * 5.2) * smoothstep(0.38, 0.88, nebN);
-  // Rich near-black deep-space indigo backdrop + delicate Milky Way dust
-  var col = vec3<f32>(0.0014, 0.0028, 0.011)
-          + vec3<f32>(0.0048, 0.0092, 0.028) * nebBand
-          + vec3<f32>(0.0095, 0.0062, 0.020) * pow(nebBand, 2.4);
+  let nebN1 = noise3(rd * 3.4 + vec3<f32>(1.2, 0.4, 2.7));
+  let nebN2 = noise3(rd * 8.6 - vec3<f32>(nebN1 * 1.6, 0.5, nebN1 * 1.1));
+  let nebBand = exp(-galLat * 4.0) * smoothstep(0.30, 0.85, nebN1 * 0.62 + nebN2 * 0.38);
+  let dustFilament = exp(-galLat * 6.2) * pow(clamp(1.0 - abs(nebN2 * 2.0 - 1.0), 0.0, 1.0), 2.4);
+  // Rich Webb-grade deep-space indigo backdrop + luminous cobalt-violet galactic clouds + faint golden dust wisps!
+  var col = vec3<f32>(0.0014, 0.0029, 0.0115)
+          + vec3<f32>(0.0092, 0.020, 0.058) * nebBand
+          + vec3<f32>(0.024, 0.012, 0.048) * pow(nebBand, 2.0)
+          + vec3<f32>(0.026, 0.017, 0.008) * dustFilament * 0.90;
 
-  // Razor-crisp 3-layer astronomical pinpoint starfield (thousands of subpixel sharp stars — ZERO blurry uniform circles!)
+  // Razor-crisp 3-layer astronomical pinpoint starfield (thousands of subpixel sharp stars with temperature diversity!)
   for (var layer = 0; layer < 3; layer++) {
-    let scale = select(select(155.0, 310.0, layer == 1), 540.0, layer == 2);
+    let scale = select(select(160.0, 325.0, layer == 1), 590.0, layer == 2);
     let sp = rd * scale;
     let id = floor(sp);
     let f = fract(sp) - 0.5;
     let h = hash33(id + f32(layer) * 23.7);
     let offset = (h - 0.5) * 0.58;
     let d = length(f - offset);
-    let thresh = select(select(0.880, 0.908, layer == 1), 0.928, layer == 2);
+    let thresh = select(select(0.870, 0.902, layer == 1), 0.922, layer == 2);
     if (h.x > thresh) {
-      let mag = pow((h.x - thresh) / (1.0 - thresh), 2.1);
-      let bright = mag * select(select(5.4, 2.8, layer == 1), 1.65, layer == 2);
-      let starRadius = select(select(0.062, 0.048, layer == 1), 0.038, layer == 2);
-      let core = pow(smoothstep(starRadius, 0.0, d), 1.6);
-      let sCol = mix(vec3<f32>(0.65, 0.88, 1.0), vec3<f32>(1.0, 0.86, 0.62), h.y);
+      let mag = pow((h.x - thresh) / (1.0 - thresh), 1.9);
+      let bright = mag * select(select(6.4, 3.3, layer == 1), 1.85, layer == 2);
+      let starRadius = select(select(0.062, 0.046, layer == 1), 0.036, layer == 2);
+      let core = pow(smoothstep(starRadius, 0.0, d), 1.55);
+      let sCol = mix(vec3<f32>(0.64, 0.89, 1.0), vec3<f32>(1.0, 0.86, 0.60), h.y);
       col += sCol * core * bright;
     }
   }
@@ -899,25 +915,46 @@ fn fs_opaque(inp: VSOut) -> @location(0) vec4<f32> {
 
     let sn = u.flags.w;
     let sn2 = sn * sn;
+    // REAL-TIME ANALYTICAL RING-ON-RING ECLIPSE SHADOW CASTING (inner rings cast moving soft-penumbra shadows across outer rings!)
+    // ringPlanes is strictly sorted by increasing radius -> early break skips all outer shells (>50% faster, bit-identical!).
+    var ringEclipse = 1.0;
+    if (inp.ringMeta.x > 0.5) {
+      let dirOut = -Lstar;
+      let maxCastR = starDist - 26.0;
+      for (var ri = 0u; ri < 22u; ri++) {
+        let rp = u.ringPlanes[ri];
+        let rR = rp.w;
+        if (rR >= maxCastR) { break; }
+        let dPlane = abs(dot(dirOut, rp.xyz)) * rR;
+        let pack = u.ringHalfH[ri >> 2u];
+        let lane = ri & 3u;
+        let hh = select(select(select(pack.x, pack.y, lane == 1u), pack.z, lane == 2u), pack.w, lane == 3u);
+        let pen = 24.0 * clamp((starDist - rR) / max(rR, 120.0), 0.20, 1.85);
+        let occ = smoothstep(hh - pen * 0.22, hh + pen * 0.88, dPlane);
+        ringEclipse *= mix(0.20, 1.0, occ);
+      }
+      ringEclipse = mix(ringEclipse, 1.0, sn2 * 0.72);
+    }
+
     // Dramatic traveling coronal light pulse sweeping outward ring-by-ring across the planetary astrolabe!
     let pulseWaveR = 250.0 + u.starPos.w * 1680.0;
     let pulseHit = exp(-pow((starDist - pulseWaveR) / 95.0, 2.0)) * (1.0 - u.starPos.w * 0.40);
 
     let atten = 1.0 / (1.0 + (starDist * 0.00050) * (starDist * 0.00050));
-    let snTint = mix(vec3<f32>(2.8, 3.9, 6.4), vec3<f32>(8.2, 6.8, 5.2), sn);
-    let starLightCol = snTint * (1.0 + pulseHit * 4.5 + sn2 * 6.5) * atten;
+    let snTint = mix(vec3<f32>(2.9, 4.1, 6.6), vec3<f32>(8.2, 6.8, 5.2), sn);
+    let starLightCol = snTint * (1.0 + pulseHit * 4.5 + sn2 * 6.5) * atten * ringEclipse;
     let ndl = max(dot(N, Lstar), 0.0);
     let diff = albedo * (1.0 - metallic) * ndl / PI;
-    let spec = min(ggxSpec(N, V, Lstar, safeR, F0), vec3<f32>(1.45)) * select(0.32, 0.58, isBronze);
+    let spec = min(ggxSpec(N, V, Lstar, safeR, F0), vec3<f32>(1.45)) * select(0.32, 0.62, isBronze);
     col += (diff + spec) * starLightCol;
 
-    // Anti-aliased silky icy blue-white backlighting rim silhouettes (strong variance damping -> ZERO orbital stair-step shimmer!)
+    // Anti-aliased silky icy blue-white backlighting rim silhouettes modulated by real eclipse shadows!
     let ndv = max(dot(N, V), 0.0);
     let rimAA = 1.0 / (1.0 + normVar * 16.0 + pixFootprint * 0.24);
     let fres = pow(1.0 - ndv, 4.4) * rimAA;
     let backAlign = smoothstep(-0.08, 0.88, dot(V, -Lstar));
     let rimCol = mix(vec3<f32>(0.52, 1.12, 2.40), vec3<f32>(1.85, 1.16, 0.42), select(0.0, 0.72, isBronze));
-    col += rimCol * fres * (0.06 + 2.15 * backAlign + pulseHit * 3.8 + sn2 * 5.0) * ao * atten;
+    col += rimCol * fres * (0.06 + 2.20 * backAlign + pulseHit * 3.8 + sn2 * 5.0) * (0.28 + 0.72 * ringEclipse) * ao * atten;
 
     // Distinct shadow readability: volcanic obsidian stays jet-dark while antique bronze retains subtle warm golden sheen!
     let ambSpace = select(vec3<f32>(0.0022, 0.0040, 0.010), vec3<f32>(0.075, 0.044, 0.016), isBronze);
@@ -1086,8 +1123,10 @@ fn fs_water(inp: VSOut) -> @location(0) vec4<f32> {
   let fresnel = clamp(0.14 + 0.84 * pow(1.0 - ndv, 3.0), 0.14, 0.96);
   let deepWater = mix(vec3<f32>(0.001, 0.006, 0.013), vec3<f32>(0.004, 0.018, 0.030), exp(-dist * 0.004));
 
-  // Subtle dark liquid-glass absorption tint + ripple crest sheen
-  var col = mix(deepWater, reflCol * vec3<f32>(0.84, 0.90, 0.94), fresnel);
+  // Subtle dark liquid-glass absorption tint + underwater refractive ocean caustics web!
+  let caust = evalOceanCaustics(wPos.xz, t) * exp(-dist * 0.0042) * (1.0 - fresnel * 0.65);
+  let waterBody = deepWater + vec3<f32>(0.015, 0.095, 0.135) * caust * 0.48;
+  var col = mix(waterBody, reflCol * vec3<f32>(0.86, 0.91, 0.95), fresnel);
 
   let wRough = specAAVar(normVar, mix(0.036, 0.14, clamp(dist / 850.0, 0.0, 1.0)));
   let giantSpec = ggxSpec(N, V, normalize(GAS_GIANT_DIR), wRough, vec3<f32>(0.055));
@@ -1266,10 +1305,14 @@ fn fs_crystal(inp: VSOut) -> @location(0) vec4<f32> {
 
   var col = mix(transmitted, envRefl, fresnel * 0.52) + specTotal + rimGlow;
 
-  // Smooth dark wet waterline contact blending crystal base naturally into rippled dark water!
+  // Smooth dark wet waterline contact + dancing reflected ocean caustics shimmering up the lower crystal facets!
   let wetContact = exp(-max(wPos.y, 0.0) * 0.85) * smoothstep(-2.0, 0.05, wPos.y);
   let rippleCrest = exp(-abs(wPos.y - 0.18) * 4.0) * (0.4 + 0.6 * sin(wPos.x * 0.9 + wPos.z * 0.8 + t * 1.6));
-  col = mix(col, vec3<f32>(0.003, 0.018, 0.036), wetContact * 0.65) + vec3<f32>(0.12, 0.42, 0.62) * rippleCrest * wetContact * 0.25;
+  let caustHeight = exp(-max(wPos.y, 0.0) * 0.16) * smoothstep(-0.5, 0.4, wPos.y) * exp(-dist * 0.0035);
+  let crystCaust = evalOceanCaustics(wPos.xz + vec2<f32>(wPos.y * 0.45, -wPos.y * 0.35), t) * caustHeight;
+  col = mix(col, vec3<f32>(0.003, 0.018, 0.036), wetContact * 0.65)
+      + vec3<f32>(0.12, 0.42, 0.62) * rippleCrest * wetContact * 0.25
+      + vec3<f32>(0.06, 0.42, 0.58) * crystCaust * 0.42;
 
   col = applyAtmosphericFog(col, wPos, dist, rd, u);
   return vec4<f32>(col, 1.0);
@@ -1325,33 +1368,35 @@ fn fs_volumetric(inp: VSOut) -> @location(0) vec4<f32> {
 
   var vol = vec3<f32>(0.0);
 
-  // ACT I: Delicate organic curling low sea mist (6 ultra-fast steps)
+  // ACT I: Ultra-organic 10-step curling multi-octave sea mist gliding between crystal spires!
   if (u.actW.x > 0.01) {
-    let maxD = min(sceneDist, 320.0);
-    let steps = 6;
+    let maxD = min(sceneDist, 360.0);
+    let steps = 10;
     let dt = maxD / f32(steps);
     var mistAcc = 0.0;
     for (var i = 0; i < steps; i++) {
       let d = (f32(i) + jitter) * dt;
       let p = u.camPos.xyz + rd * d;
-      if (p.y > 0.2 && p.y < 18.0 && p.z > 5.0) {
-        let hFall = exp(-p.y * 0.20) * smoothstep(0.0, 1.8, p.y);
-        let wisp = noise3(vec3<f32>(p.x * 0.016 + t * 0.055, p.y * 0.09, p.z * 0.016 - t * 0.035));
-        let patchMask = pow(smoothstep(0.46, 0.86, wisp), 1.8);
-        mistAcc += hFall * patchMask * dt * 0.0015 * smoothstep(14.0, 55.0, d);
+      if (p.y > 0.2 && p.y < 22.0 && p.z > 5.0) {
+        let hFall = exp(-p.y * 0.18) * smoothstep(0.0, 1.8, p.y);
+        let n1 = noise3(vec3<f32>(p.x * 0.015 + t * 0.052, p.y * 0.08, p.z * 0.015 - t * 0.034));
+        let n2 = noise3(vec3<f32>(p.x * 0.038 - t * 0.04, p.y * 0.16, p.z * 0.038 + t * 0.025));
+        let wisp = n1 * 0.64 + n2 * 0.36;
+        let patchMask = pow(smoothstep(0.44, 0.84, wisp), 1.8);
+        mistAcc += hFall * patchMask * dt * 0.0017 * smoothstep(14.0, 52.0, d);
       }
     }
-    let mistCol = mix(vec3<f32>(0.05, 0.26, 0.36), vec3<f32>(0.24, 0.22, 0.40), clamp(maxD / 320.0, 0.0, 1.0));
+    let mistCol = mix(vec3<f32>(0.04, 0.26, 0.38), vec3<f32>(0.20, 0.22, 0.42), clamp(maxD / 360.0, 0.0, 1.0));
     vol += mistCol * mistAcc * u.actW.x;
   }
 
-  // ACT II: Crisp directional window-cast solar-amber god-ray shafts carving cleanly through cool matte-graphite air!
+  // ACT II: Ultra Cinematic 24-step directional solar-amber god-ray shafts with 2-octave 3D illuminated floating dust!
   let oculusFade = smoothstep(415.0, 290.0, u.camPos.y);
   let cathVis = clamp(u.actW.y + u.actW.w * 0.36, 0.0, 1.0) * oculusFade;
   if (cathVis > 0.01) {
-    let maxD = min(sceneDist, 420.0);
+    let maxD = min(sceneDist, 440.0);
     let fgPreserve = smoothstep(55.0, 152.0, sceneDist);
-    let steps = 18;
+    let steps = 24;
     let dt = maxD / f32(steps);
     let Lsun = normalize(CATH_SUN_DIR);
     let bU = normalize(cross(vec3<f32>(0.0, 1.0, 0.0), Lsun));
@@ -1369,7 +1414,7 @@ fn fs_volumetric(inp: VSOut) -> @location(0) vec4<f32> {
       let nearClear = smoothstep(38.0, 96.0, d);
       let inShaft = smoothstep(126.0, 74.0, length(p.xz - vec2<f32>(0.0, -340.0)))
                   * smoothstep(420.0, 305.0, p.y)
-                  * smoothstep(-145.0, 95.0, p.y);
+                  * smoothstep(-185.0, 95.0, p.y);
       let inNave = smoothstep(38.0, 16.0, abs(p.x))
                  * smoothstep(0.0, -40.0, p.z) * smoothstep(-235.0, -165.0, p.z)
                  * smoothstep(124.0, 88.0, p.y) * smoothstep(2.0, 14.0, p.y);
@@ -1378,7 +1423,6 @@ fn fs_volumetric(inp: VSOut) -> @location(0) vec4<f32> {
         let relP = p - vec3<f32>(0.0, 180.0, -340.0);
         let uBeam = dot(relP, bU);
         let vBeam = dot(relP, bV);
-        // Tight crisp directional diagonal solar shafts streaming from sunlit clerestory tiers (NOT broad uniform haze wash!)
         let tightShafts = pow(0.5 + 0.5 * sin(vBeam * 0.068 + 0.45), 4.0) * pow(0.5 + 0.5 * cos(uBeam * 0.036 - 0.20), 2.4);
         let subStreaks = 0.55 + 0.45 * sin(vBeam * 0.14 + uBeam * 0.07);
         let sunlitWall = smoothstep(-50.0, 102.0, p.x);
@@ -1387,16 +1431,18 @@ fn fs_volumetric(inp: VSOut) -> @location(0) vec4<f32> {
         let brShad2 = smoothstep(6.0, 24.0, abs((p.y - 108.0) - (p.x * 0.62)) + abs(p.z + 340.0) * 0.14);
         let brOcc = 0.22 + 0.78 * min(brShad1, brShad2);
 
-        let dust = 0.45 + 0.75 * noise3(p * 0.018 + vec3<f32>(0.0, -t * 0.11, t * 0.04));
+        let d1 = noise3(p * 0.018 + vec3<f32>(0.0, -t * 0.11, t * 0.04));
+        let d2 = noise3(p * 0.048 + vec3<f32>(t * 0.05, -t * 0.18, 0.0));
+        let dust = 0.38 + 0.85 * (d1 * 0.65 + d2 * 0.35);
         let beam = tightShafts * subStreaks * sunlitWall * dust * brOcc * volMask;
-        amberAcc += beam * dt * 0.0092;
+        amberAcc += beam * dt * 0.0094;
       }
     }
     let rayCol = mix(vec3<f32>(1.55, 0.80, 0.20), vec3<f32>(2.05, 1.65, 1.05), clamp(amberAcc * 0.72, 0.0, 1.0));
     vol += rayCol * amberAcc * phase * cathVis * (0.12 + 0.88 * fgPreserve);
   }
 
-  // ACT III: PIERCING BLUE-WHITE ECLIPSE SHAFTS SLICING THROUGH INNER, MIDDLE & OUTER RING GAPS (ZERO open-sky fan flash or equatorial cutoff!)
+  // ACT III: ULTRA-CRISP 48-STEP PIERCING BLUE-WHITE ECLIPSE SHAFTS SLICING THROUGH ALL 22 RING GAPS!
   let spaceRayW = smoothstep(0.06, 0.46, u.actW.z) * smoothstep(0.08, 0.42, u.starScreen.w);
   if (spaceRayW > 0.01) {
     let sn = u.flags.w;
@@ -1404,15 +1450,14 @@ fn fs_volumetric(inp: VSOut) -> @location(0) vec4<f32> {
     let starUV = u.starScreen.xy;
     let delta = uv - starUV;
     let radialDist = length(delta);
-    // Reaches cleanly past ALL 22 outer planetary rings!
     let rFrac = clamp(radialDist / mix(0.95, 1.45, sn), 0.0, 1.0);
     let smoothEnv = (1.0 - rFrac) * (1.0 - rFrac) * (1.0 - rFrac);
-    let radialEnv = exp(-radialDist * radialDist * mix(1.25, 0.55, sn)) * smoothEnv;
+    let radialEnv = exp(-radialDist * radialDist * mix(1.20, 0.55, sn)) * smoothEnv;
     let isSkyPixel = depth >= 0.9998;
     let gapMask = select(sn2 * 0.48, 1.0, isSkyPixel);
     if (radialEnv > 0.002 && gapMask > 0.002) {
-      let steps = 56;
-      let rJit = hash12(pix + vec2<f32>(fract(u.camUp.w * 0.381) * 53.0, 19.7));
+      let steps = 48;
+      let rJit = ign(pix + vec2<f32>(fract(u.camUp.w * 0.381) * 53.0, 19.7));
       var trans = 1.0;
       var scatter = 0.0;
       var occCount = 0.0;
@@ -1424,23 +1469,21 @@ fn fs_volumetric(inp: VSOut) -> @location(0) vec4<f32> {
           let sd = loadDepthAtUV(sampleUV);
           let isGap = sd >= 0.9998;
           if (!isGap) { occCount += 1.0; }
-          trans *= select(mix(0.84, 0.92, sn), 1.0, isGap);
+          trans *= select(mix(0.82, 0.91, sn), 1.0, isGap);
           let dFromStar = fStep * radialDist;
-          let falloff = exp(-dFromStar * mix(1.45, 0.95, sn));
+          let falloff = exp(-dFromStar * mix(1.42, 0.95, sn));
           scatter += trans * falloff * select(0.0, 1.0, isGap);
         }
       }
 
-      // Piercing searchlight shafts ONLY where starlight genuinely diffracts through astrolabe ring gaps!
-      // Eliminates 100% of the open-sky upper-hemisphere fan & equatorial cutoff while letting shafts slice past the OUTER rings in Pose 4!
-      let hasRingGap = smoothstep(0.0, 3.0, occCount);
+      let hasRingGap = smoothstep(0.0, 2.2, occCount);
       let closeStarCore = exp(-radialDist * 9.5);
       let shaftMask = max(hasRingGap, closeStarCore * 0.35);
-      let rawInt = (scatter / f32(steps)) * pow(trans, 0.35);
-      let rayIntensity = (1.0 - exp(-rawInt * 2.8)) * shaftMask;
+      let rawInt = (scatter / f32(steps)) * pow(trans, 0.32);
+      let rayIntensity = (1.0 - exp(-rawInt * 2.9)) * shaftMask;
       let pulseBoost = 1.0 + 0.65 * exp(-pow((u.starPos.w - 0.14) * 5.0, 2.0));
-      let rayTint = mix(vec3<f32>(0.38, 0.86, 2.15), vec3<f32>(2.4, 1.65, 0.85), smoothstep(0.20, 0.80, sn));
-      let blueWhite = rayTint * rayIntensity * (2.35 + sn2 * 7.5) * pulseBoost * radialEnv * gapMask;
+      let rayTint = mix(vec3<f32>(0.38, 0.88, 2.20), vec3<f32>(2.4, 1.65, 0.85), smoothstep(0.20, 0.80, sn));
+      let blueWhite = rayTint * rayIntensity * (2.45 + sn2 * 7.5) * pulseBoost * radialEnv * gapMask;
       vol += blueWhite * spaceRayW;
     }
   }
@@ -1452,21 +1495,26 @@ fn fs_volumetric(inp: VSOut) -> @location(0) vec4<f32> {
 @group(0) @binding(2) var volInTex: texture_2d<f32>;
 @group(0) @binding(3) var volSamp: sampler;
 
+fn worldPosFromDepth(uv: vec2<f32>, depth: f32) -> vec3<f32> {
+  let ndc = vec4<f32>(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0, depth, 1.0);
+  let wp4 = u.invViewProj * ndc;
+  return wp4.xyz / wp4.w;
+}
+
 @fragment
 fn fs_vol_blur(inp: VSOut) -> @location(0) vec4<f32> {
   let center = textureSampleLevel(volInTex, volSamp, inp.uv, 0.0);
   let cDepth = center.a;
 
-  // Act III: Depth-preserving directional RADIAL blur -> silky zero-ripple rays strictly BEHIND dark obsidian ring silhouettes!
+  // Act III: 9-tap depth-preserving directional RADIAL blur -> silky cinema eclipse searchlights strictly BEHIND dark obsidian rings!
   if (u.actW.z > 0.25 && u.starScreen.w > 0.05) {
-    // Never bleed bright sky rays on top of solid dark volcanic obsidian rings (keeps EVERY ring jet-dark & razor-sharp!)
     if (cDepth < 0.99 && u.flags.w < 0.35) {
-      return vec4<f32>(center.rgb, cDepth);
+      return vec4<f32>(center.rgb, 1.0);
     }
     let dir = inp.uv - u.starScreen.xy;
     let dLen = length(dir);
     let rDir = select(vec2<f32>(0.0), dir / dLen, dLen > 0.002);
-    let rStep = rDir * (min(dLen * 0.08, 0.022) * 0.25);
+    let rStep = rDir * (min(dLen * 0.075, 0.020) * 0.25);
     var acc = center.rgb * 0.20;
     var wAcc = 0.20;
     for (var k = -4; k <= 4; k++) {
@@ -1475,11 +1523,11 @@ fn fs_vol_blur(inp: VSOut) -> @location(0) vec4<f32> {
       let sUV = clamp(inp.uv + rStep * fk, vec2<f32>(0.002), vec2<f32>(0.998));
       let s = textureSampleLevel(volInTex, volSamp, sUV, 0.0);
       let depthMatch = select(1.0, step(0.99, s.a), u.flags.w < 0.35);
-      let w = exp(-fk * fk * 0.14) * depthMatch;
+      let w = exp(-fk * fk * 0.16) * depthMatch;
       acc += s.rgb * w;
       wAcc += w;
     }
-    return vec4<f32>(acc / max(wAcc, 0.001), cDepth);
+    return vec4<f32>(acc / max(wAcc, 0.001), 1.0);
   }
 
   let texel = vec2<f32>(2.0 * u.res.z, 2.0 * u.res.w);
@@ -1500,7 +1548,53 @@ fn fs_vol_blur(inp: VSOut) -> @location(0) vec4<f32> {
     sum += s.rgb * w;
     wSum += w;
   }
-  return vec4<f32>(sum / max(wSum, 0.001), cDepth);
+
+  // ULTRA CINEMATIC 7-TAP HORIZON-AWARE WORLD-SPACE SSAO (real contact shadows in cathedral arches, piers, portal & coffers!)
+  var aoOut = 1.0;
+  if (cDepth < 0.99 && u.actW.z < 0.65) {
+    let dC = loadDepthAtUV(inp.uv);
+    if (dC < 0.9997) {
+      let wC = worldPosFromDepth(inp.uv, dC);
+      let distC = length(wC - u.camPos.xyz);
+      if (distC < 460.0) {
+        let uvR = min(inp.uv + vec2<f32>(texel.x, 0.0), vec2<f32>(0.998));
+        let uvU = max(inp.uv - vec2<f32>(0.0, texel.y), vec2<f32>(0.002));
+        let wR = worldPosFromDepth(uvR, loadDepthAtUV(uvR));
+        let wU = worldPosFromDepth(uvU, loadDepthAtUV(uvU));
+        var nC = normalize(cross(wR - wC, wU - wC));
+        if (dot(nC, u.camPos.xyz - wC) < 0.0) { nC = -nC; }
+
+        let rotAng = ign(inp.pos.xy) * 6.2831853;
+        let rScreen = clamp(15.0 / max(distC * 0.085, 1.0), 0.006, 0.032);
+        let aspect = u.camFwd.w;
+        var occ = 0.0;
+        for (var k = 0; k < 7; k++) {
+          let fk = f32(k);
+          let rad = sqrt((fk + 0.5) / 7.0) * rScreen;
+          let theta = fk * 2.3999632 + rotAng;
+          let sUV = clamp(inp.uv + vec2<f32>(cos(theta) / aspect, sin(theta)) * rad, vec2<f32>(0.002), vec2<f32>(0.998));
+          let dS = loadDepthAtUV(sUV);
+          if (dS < 0.9997) {
+            let wS = worldPosFromDepth(sUV, dS);
+            let diff = wS - wC;
+            let len = length(diff);
+            // Smooth world-space range falloff -> ZERO dark halos around foreground bridges/columns!
+            let rangeW = smoothstep(13.5, 1.2, len) * smoothstep(0.08, 0.65, len);
+            let horizon = max(0.0, dot(nC, diff / max(len, 0.001)) - 0.16);
+            occ += horizon * rangeW;
+          }
+        }
+        let distFade = smoothstep(450.0, 220.0, distC);
+        let actFade = smoothstep(0.65, 0.15, u.actW.z);
+        // Stronger architectural crevice weight inside Act II stone cathedral & portal, gentler on Act I glassy ocean
+        let waterAvoid = smoothstep(0.6, 4.2, wC.y + (1.0 - u.actW.x) * 20.0);
+        let aoStrength = mix(0.95, 1.48, u.actW.y) * distFade * actFade * waterAvoid;
+        aoOut = clamp(1.0 - (occ / 7.0) * aoStrength, 0.36, 1.0);
+      }
+    }
+  }
+
+  return vec4<f32>(sum / max(wSum, 0.001), aoOut);
 }
 `;
 
@@ -1851,7 +1945,23 @@ fn agxToSrgb(val: vec3<f32>) -> vec3<f32> {
 fn fs_comp(inp: VSOut) -> @location(0) vec4<f32> {
   let uv = inp.uv;
   var hdr = textureSampleLevel(hdrTex, linSamp, uv, 0.0).rgb;
-  let vol = textureSampleLevel(volTex, linSamp, uv, 0.0).rgb;
+  let volSample = textureSampleLevel(volTex, linSamp, uv, 0.0);
+  let vol = volSample.rgb;
+  // Smooth 4-tap bilinear box filter on half-res horizon SSAO (skipped coherently in Act III space -> zero overhead!)
+  if (u.actW.z < 0.65) {
+    let vT = u.res.zw * 1.5;
+    let aoSmooth = (
+      textureSampleLevel(volTex, linSamp, uv + vec2<f32>( vT.x,  vT.y), 0.0).a
+      + textureSampleLevel(volTex, linSamp, uv + vec2<f32>(-vT.x,  vT.y), 0.0).a
+      + textureSampleLevel(volTex, linSamp, uv + vec2<f32>( vT.x, -vT.y), 0.0).a
+      + textureSampleLevel(volTex, linSamp, uv + vec2<f32>(-vT.x, -vT.y), 0.0).a
+    ) * 0.25;
+    // Preserve bright glowing clerestory windows & embers untouched by SSAO while grounding all stone architecture!
+    let hdrLuma = dot(hdr, vec3<f32>(0.2126, 0.7152, 0.0722));
+    let aoApply = mix(aoSmooth, 1.0, smoothstep(0.65, 2.2, hdrLuma));
+    hdr *= aoApply;
+  }
+
   let bloom = textureSampleLevel(bloomTex, linSamp, uv, 0.0).rgb;
 
   let bloomWeight = mix(0.22, 0.24, u.actW.z);

@@ -955,7 +955,7 @@ export function buildAstrolabe() {
     const speed = dir * (0.020 + (1.0 - f) * 0.088 + rng() * 0.022);
     const phase0 = rng() * Math.PI * 2;
 
-    ringShells.push({ i, radius, innerR: radius - maxDr, outerSphereR, radW, vertH, tiltX, tiltY, tiltZ });
+    ringShells.push({ i, radius, innerR: radius - maxDr, outerSphereR, radW, vertH, tiltX, tiltY, tiltZ, phase0, precAmp: 0.008 * dir });
     const target = kind === 0 ? instA : kind === 1 ? instB : instC;
     target.push(radius, radW, vertH, phase0, tiltX, tiltY, tiltZ, speed, 0.008 * dir, f, 0, 0);
   }
