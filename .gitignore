@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Dependencies & caches
+node_modules/
+.npm/
+
+# Temporary & scratch artifacts
+*.tmp
+*.log
+*.webm
+*.mp4
+.bundle-check.mjs

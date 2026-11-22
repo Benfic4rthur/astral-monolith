@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ASTRAL MONOLITH — Three-Act WebGPU Cosmic Journey</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="menu">
+  <div class="panel">
+    <div class="kicker">WebGPU Real-Time Procedural Journey</div>
+    <h1>Astral Monolith</h1>
+    <p class="sub">From a mirrored sea of crystal prisms, through an endless fractal cathedral shaft, out into a planetary orbital astrolabe.</p>
+    <div class="bar-wrap"><div id="bar-fill"></div></div>
+    <div id="load-status">Initializing…</div>
+    <div id="menu-actions">
+      <button id="btn-tour" class="btn primary">Guided Tour (90s)</button>
+      <button id="btn-free" class="btn">Free Flight</button>
+    </div>
+    <div class="keys"><b>WASD</b> Move &nbsp;·&nbsp; <b>Q / E</b> Down / Up &nbsp;·&nbsp; <b>Shift</b> Boost &nbsp;·&nbsp; <b>Mouse</b> Look<br><b>T</b> Toggle Guided Tour &nbsp;·&nbsp; <b>M</b> Mute Audio &nbsp;·&nbsp; <b>H</b> Toggle HUD</div>
+    <div id="err"></div>
+  </div>
+</div>
+<div id="hud">
+  <div id="hud-left">
+    <div id="hud-act">I · MIRRORED PRISM SEA</div>
+    <div id="hud-mode">GUIDED TOUR</div>
+  </div>
+  <div id="hud-right">
+    <div id="hud-time">0.0s / 90.0s</div>
+  </div>
+</div>
+<div id="flash"></div>
+<div id="fps-box"><div id="fps-txt">-- FPS · -- ms</div><canvas id="ms-graph" width="164" height="38"></canvas></div>
+<pre id="report" style="display:none"></pre>
+<script type="module">/*__JS__*/</script>
+</body>
+</html>
