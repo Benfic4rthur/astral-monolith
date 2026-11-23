@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const srcDir = path.join(dir, 'src');
 
-const modules = ['math.js', 'geom.js', 'shaders.js', 'tour.js', 'audio.js', 'main.js'];
+const modules = ['math.js', 'geom.js', 'eras_atlas.js', 'shaders.js', 'tour.js', 'audio.js', 'main.js'];
 
 // Strip ES import/export boilerplate cleanly since all modules share one top-level module scope
 function stripModuleBoilerplate(code) {

@@ -55,6 +55,14 @@ class MeshBuilder {
     this.tri(a, b, c);
     this.tri(a, c, d);
   }
+  quadSmooth(p0, p1, p2, p3, n0, n1, n2, n3, u0, v0, u1, v1, matId, ao0 = 1, ao1 = 1, ao2 = 1, ao3 = 1) {
+    const a = this.vert(p0[0], p0[1], p0[2], n0[0], n0[1], n0[2], u0, v0, matId, ao0);
+    const b = this.vert(p1[0], p1[1], p1[2], n1[0], n1[1], n1[2], u1, v0, matId, ao1);
+    const c = this.vert(p2[0], p2[1], p2[2], n2[0], n2[1], n2[2], u1, v1, matId, ao2);
+    const d = this.vert(p3[0], p3[1], p3[2], n3[0], n3[1], n3[2], u0, v1, matId, ao3);
+    this.tri(a, b, c);
+    this.tri(a, c, d);
+  }
   triP(p0, p1, p2, uv0, uv1, uv2, matId, ao0 = 1, ao1 = 1, ao2 = 1) {
     const e1x = p1[0] - p0[0], e1y = p1[1] - p0[1], e1z = p1[2] - p0[2];
     const e2x = p2[0] - p0[0], e2y = p2[1] - p0[1], e2z = p2[2] - p0[2];
@@ -621,25 +629,29 @@ export function buildCathedralModules() {
   }
   bay.addBeveledBox(58, 0, 0, 16, H * 1.18, W * 1.42, 0.8, 0.0, 0.30);
 
-  // Clerestory solar-amber window variant bay (ornate gothic lancet tracery!)
+  // Clerestory Temporal Portal Window bay (clean open gothic lancet arch framing glimpses into 6 Eras of Time!)
   const winBay = new MeshBuilder(10000);
   for (const s of [-1, 1]) {
     winBay.addBeveledBox(10, 0, s * (W * 0.45), 24, H, 10.5, 0.9, 0.0, 0.78);
     winBay.addBeveledBox(-2, 0, s * (W * 0.43), 9, H, 5.2, 0.5, 0.0, 0.90);
     winBay.addBeveledBox(-1.2, 0, s * (W * 0.402), 0.24, H * 0.88, 0.30, 0.04, 1.0, 0.78);
-    winBay.addBeveledBox(58, 0, s * 24, 16, H * 1.18, 36, 0.8, 0.0, 0.36);
+    winBay.addBeveledBox(58, 0, s * 25.5, 16, H * 1.18, 30, 0.8, 0.0, 0.36);
   }
   winBay.addBeveledBox(8, H * 0.46, 0, 22, 6.5, W * 0.94, 0.7, 0.0, 0.82);
   addCompoundPointedArch(winBay, 2.0, H * 0.42, W * 0.78, 4.8, 12.0, 0.84);
   winBay.addBeveledBox(-3, -H * 0.45, 0, 9, 3.4, W * 0.78, 0.35, 0.0, 0.86);
-  for (const mz of [-4.6, 0, 4.6]) {
-    winBay.addBeveledBox(48, 0, mz, 5.5, H * 0.94, 1.5, 0.2, 0.0, 0.54);
+  // Sleek outer gothic stone frame jambs & pointed arch tracery leaving the central temporal vision unobstructed!
+  for (const mz of [-10.8, 10.8]) {
+    winBay.addBeveledBox(48, 0, mz, 5.0, H * 0.94, 1.8, 0.22, 0.0, 0.58);
   }
-  for (const my of [-16, -4, 8, 20]) {
-    winBay.addBeveledBox(48, my, 0, 5.5, 1.8, 19, 0.2, 0.0, 0.54);
-  }
-  addCompoundPointedArch(winBay, 48, 22, 16, 2.2, 5.5, 0.60);
-  winBay.addBeveledBox(64, 0, 0, 2, H * 0.94, 17, 0.1, 7.0, 1.0);
+  winBay.addBeveledBox(48, -25.2, 0, 5.5, 2.4, 24, 0.22, 0.0, 0.58);
+  addCompoundPointedArch(winBay, 48, 22.5, 21.6, 2.6, 6.2, 0.64);
+  // Exact [0..1, 0..1] UV temporal portal window plane facing -X into the cathedral shaft (21.6m wide x 50.4m tall)
+  winBay.quad(
+    [54.5, -25.2, -10.8], [54.5, -25.2,  10.8],
+    [54.5,  25.2,  10.8], [54.5,  25.2, -10.8],
+    0.0, 0.0, 1.0, 1.0, 7.0, 1.0, 1.0, 1.0, 1.0
+  );
 
   // Monumental chiseled basalt spanning cathedral bridge with sleek curved gothic arch haunches (ZERO boxy hanging teeth!)
   const bridge = new MeshBuilder(4200);
@@ -703,9 +715,21 @@ export function buildCathedralModules() {
       const pz = sz + sa * shaftR;
       if (sa > 0.82 && y > -15 && y < 130) continue;
 
-      const isSunlitSide = (ca > 0.30 && tier >= -3 && tier <= 6 && ((s + tier * 3) & 1) === 0);
-      const targetArr = isSunlitSide ? winBayInst : bayInst;
-      targetArr.push(px, y, pz, -angle, 1.0, 1.0, 1.0, rng(), 0, 0, 0, 0);
+      // 6 Widely-Spaced Monumental Temporal Portal Windows (1 unique era per tier, separated by 58m vertically & 60°-120° horizontally!)
+      // Chronological climb: 0 Dinosaurs -> 1 Cavemen -> 2 Knights Templar -> 3 WWII -> 4 Modern NYC -> 5 Mars Colony!
+      let eraId = -1;
+      if (tier === 0 && s === 8) eraId = 0;       // Dinosaurs (far-north arch right ahead entering from portal!)
+      else if (tier === 1 && s === 11) eraId = 1; // Cavemen (east sunlit wall)
+      else if (tier === 2 && s === 9) eraId = 2;  // Knights Templar (northeast arch)
+      else if (tier === 3 && s === 11) eraId = 3; // World War II (east wall, Pose 6 tier)
+      else if (tier === 4 && s === 7) eraId = 4;  // Modern New York City (northwest wall)
+      else if (tier === 5 && s === 10) eraId = 5; // Humans Colonizing Mars (upper northeast arch beneath Pantheon Oculus!)
+
+      if (eraId >= 0) {
+        winBayInst.push(px, y, pz, -angle, 1.0, 1.0, 1.0, eraId, 0, 0, 0, 0);
+      } else {
+        bayInst.push(px, y, pz, -angle, 1.0, 1.0, 1.0, rng(), 0, 0, 0, 0);
+      }
 
       if (tier >= -10 && tier <= 6 && rng() < 0.58) {
         // Never spawn sliding blocks blocking the nave exit balcony!
@@ -773,8 +797,8 @@ export function buildCathedralModules() {
 // =========================================================================
 // ACT III — PLANETARY-SCALE ORBITAL ASTROLABE (32 STRICTLY NON-INTERSECTING SHELLS!)
 // =========================================================================
-function buildAstrolabeRingProfile(profilePts, segs, addCleats, addSpireCount) {
-  const mb = new MeshBuilder(12000);
+function buildAstrolabeRingProfile(profilePts, segs, addSpireCount) {
+  const mb = new MeshBuilder(18000);
   const P = profilePts.length;
 
   for (let s = 0; s < segs; s++) {
@@ -790,60 +814,42 @@ function buildAstrolabeRingProfile(profilePts, segs, addCleats, addSpireCount) {
       const a = profilePts[k], b = profilePts[kn];
       const rA = 1.0 + a.dr, yA = a.dy;
       const rB = 1.0 + b.dr, yB = b.dy;
-      mb.quad(
+      const dR = rB - rA, dY = yB - yA;
+      const len = Math.hypot(dR, dY) || 1;
+      const nRad = -dY / len, nY = dR / len;
+      const n0 = [c0 * nRad, nY, s0 * nRad];
+      const n1 = [c1 * nRad, nY, s1 * nRad];
+      mb.quadSmooth(
         [c0 * rA, yA, s0 * rA], [c1 * rA, yA, s1 * rA],
         [c1 * rB, yB, s1 * rB], [c0 * rB, yB, s0 * rB],
+        n0, n1, n1, n0,
         u0, k / P, u1, (k + 1) / P, a.mat, a.ao, a.ao, b.ao, b.ao
       );
     }
   }
 
-  if (addCleats > 0) {
-    for (let c = 0; c < addCleats; c++) {
-      const ang = (c / addCleats) * Math.PI * 2;
-      const isMajor = (c % 4) === 0;
-      const ca = Math.cos(ang), sa = Math.sin(ang);
-      // Recessed oxidized bronze astronomical index tabs & obsidian clasp brackets
-      mb.addBeveledBox(
-        ca * 0.86, 0, sa * 0.86,
-        isMajor ? 0.42 : 0.24, isMajor ? 0.56 : 0.30, isMajor ? 0.022 : 0.011,
-        0.002, isMajor ? 3.0 : 2.0, 0.92, -ang
-      );
-      if (isMajor) {
-        // Sculpted golden-bronze celestial vernier sight crest flanking major cardinal nodes
-        mb.addBeveledBox(ca * 1.0, 0.36, sa * 1.0, 0.34, 0.16, 0.032, 0.002, 4.0, 0.96, -ang);
-        mb.addBeveledBox(ca * 1.0, -0.36, sa * 1.0, 0.34, 0.16, 0.032, 0.002, 4.0, 0.96, -ang);
-      }
-    }
-  }
-
+  // Only clean, monumental, wide chamfered cardinal observatory shrines (ZERO 1-pixel sawtooth micro-cleats!)
   if (addSpireCount > 0) {
     for (let sp = 0; sp < addSpireCount; sp++) {
       const ang = (sp / addSpireCount) * Math.PI * 2;
       const ca = Math.cos(ang), sa = Math.sin(ang);
-      // Monumental planetary observatory buttresses, stepped obsidian arches & burnished bronze astrolabe meridian shrines!
-      mb.addBeveledBox(ca * 0.94, 0, sa * 0.94, 0.44, 0.58, 0.036, 0.003, 2.0, 0.88, -ang);
-      mb.addBeveledBox(ca * 1.06, 0, sa * 1.06, 0.34, 0.42, 0.056, 0.003, 3.0, 0.94, -ang);
-      mb.addBeveledBox(ca * 0.80, 0, sa * 0.80, 0.20, 0.28, 0.022, 0.002, 4.0, 0.98, -ang);
-      // Flanking astronomical vernier pylons creating rich megastructure silhouette relief!
-      const aL = ang - 0.045, aR = ang + 0.045;
-      mb.addBeveledBox(Math.cos(aL) * 0.98, 0, Math.sin(aL) * 0.98, 0.48, 0.48, 0.016, 0.002, 3.0, 0.92, -aL);
-      mb.addBeveledBox(Math.cos(aR) * 0.98, 0, Math.sin(aR) * 0.98, 0.48, 0.48, 0.016, 0.002, 3.0, 0.92, -aR);
+      mb.addBeveledBox(ca * 0.96, 0, sa * 0.96, 0.42, 0.56, 0.048, 0.008, 2.0, 0.88, -ang);
+      mb.addBeveledBox(ca * 1.04, 0, sa * 1.04, 0.30, 0.44, 0.068, 0.008, 3.0, 0.94, -ang);
     }
   }
   return mb.finish();
 }
 
 export function buildAstrolabe() {
-  // RING TYPE A: MONUMENTAL STEPPED VOLCANIC OBSIDIAN MEGASTRUCTURE RING with wide recessed antique oxidized-bronze observatory channels!
+  // RING TYPE A: RAZOR-SMOOTH 240-SEG STEPPED VOLCANIC OBSIDIAN MEGASTRUCTURE RING with antique oxidized-bronze observatory tracks!
   const profA = [
     { dr: -0.48, dy: -0.22, mat: 2.0, ao: 0.90 },
-    { dr: -0.50, dy:  0.00, mat: 3.0, ao: 0.96 }, // inner antique bronze meridian trim catching starlight!
+    { dr: -0.50, dy:  0.00, mat: 3.0, ao: 0.96 },
     { dr: -0.48, dy:  0.22, mat: 2.0, ao: 0.92 },
     { dr: -0.34, dy:  0.46, mat: 2.0, ao: 0.84 },
-    { dr: -0.10, dy:  0.48, mat: 3.0, ao: 0.88 }, // broad upper burnished bronze observatory track!
+    { dr: -0.10, dy:  0.48, mat: 3.0, ao: 0.88 },
     { dr:  0.24, dy:  0.46, mat: 2.0, ao: 0.80 },
-    { dr:  0.38, dy:  0.30, mat: 3.0, ao: 0.72 }, // recessed oxidized bronze verdigris inlay
+    { dr:  0.38, dy:  0.30, mat: 3.0, ao: 0.72 },
     { dr:  0.50, dy:  0.18, mat: 2.0, ao: 0.82 },
     { dr:  0.50, dy: -0.18, mat: 2.0, ao: 0.72 },
     { dr:  0.38, dy: -0.30, mat: 3.0, ao: 0.68 },
@@ -851,11 +857,11 @@ export function buildAstrolabe() {
     { dr: -0.10, dy: -0.48, mat: 3.0, ao: 0.80 },
     { dr: -0.34, dy: -0.46, mat: 2.0, ao: 0.72 },
   ];
-  const ringA = buildAstrolabeRingProfile(profA, 160, 64, 8);
+  const ringA = buildAstrolabeRingProfile(profA, 240, 8);
 
-  // RING TYPE B: MASSIVE SLOTTED VOLCANIC OBSIDIAN & BRONZE ECLIPSE RING (carved monolith armor rails + intricate observatory bridges!)
-  const mbB = new MeshBuilder(18000);
-  const segsB = 160;
+  // RING TYPE B: SLEEK 240-SEG TWIN-RAIL VOLCANIC OBSIDIAN & BRONZE ECLIPSE RING (12 wide monumental bridges — ZERO subpixel zebra aliasing!)
+  const mbB = new MeshBuilder(24000);
+  const segsB = 240;
   const subRails = [
     { drCenter: -0.31, drHalf: 0.19, dyHalf: 0.42, matOuter: 2.0, matInner: 3.0 },
     { drCenter:  0.31, drHalf: 0.19, dyHalf: 0.46, matOuter: 2.0, matInner: 3.0 },
@@ -876,26 +882,31 @@ export function buildAstrolabe() {
         const kn = (k + 1) % p.length;
         const rA = 1.0 + p[k].dr, yA = p[k].dy;
         const rB = 1.0 + p[kn].dr, yB = p[kn].dy;
-        mbB.quad(
+        const dR = rB - rA, dY = yB - yA;
+        const len = Math.hypot(dR, dY) || 1;
+        const nRad = -dY / len, nY = dR / len;
+        const n0 = [c0 * nRad, nY, s0 * nRad];
+        const n1 = [c1 * nRad, nY, s1 * nRad];
+        mbB.quadSmooth(
           [c0 * rA, yA, s0 * rA], [c1 * rA, yA, s1 * rA],
           [c1 * rB, yB, s1 * rB], [c0 * rB, yB, s0 * rB],
+          n0, n1, n1, n0,
           (s / segsB) * 28, k / p.length, ((s + 1) / segsB) * 28, (k + 1) / p.length,
           p[k].mat, p[k].ao, p[k].ao, p[kn].ao, p[kn].ao
         );
       }
     }
   }
-  // Intricate sculpted volcanic obsidian & oxidized bronze astronomical monolith ribs bridging the eclipse slot
-  for (let f = 0; f < 48; f++) {
-    const ang = (f / 48) * Math.PI * 2;
+  for (let f = 0; f < 12; f++) {
+    const ang = (f / 12) * Math.PI * 2;
     const ca = Math.cos(ang), sa = Math.sin(ang);
-    const isMajor = (f % 6) === 0;
-    mbB.addBeveledBox(ca * 1.0, 0, sa * 1.0, 0.58, isMajor ? 0.56 : 0.36, isMajor ? 0.056 : 0.024, 0.003, 2.0, 0.86, -ang);
-    if (isMajor) mbB.addBeveledBox(ca * 1.0, 0, sa * 1.0, 0.34, 0.62, 0.068, 0.003, 3.0, 0.94, -ang);
+    const isMajor = (f % 3) === 0;
+    mbB.addBeveledBox(ca * 1.0, 0, sa * 1.0, 0.58, isMajor ? 0.56 : 0.40, isMajor ? 0.068 : 0.044, 0.008, 2.0, 0.86, -ang);
+    if (isMajor) mbB.addBeveledBox(ca * 1.0, 0, sa * 1.0, 0.34, 0.62, 0.082, 0.008, 3.0, 0.94, -ang);
   }
   const ringB = mbB.finish();
 
-  // RING TYPE C: ORNATE ANTIQUE OXIDIZED BRONZE & DARK OBSIDIAN CELESTIAL VERNIER RING (unmistakable bronze-vs-obsidian contrast!)
+  // RING TYPE C: ORNATE 240-SEG ANTIQUE OXIDIZED BRONZE & DARK OBSIDIAN CELESTIAL RING (silky smooth curved silhouette!)
   const profC = [
     { dr: -0.46, dy: -0.24, mat: 3.0, ao: 0.94 },
     { dr: -0.46, dy:  0.24, mat: 3.0, ao: 0.96 },
@@ -906,7 +917,7 @@ export function buildAstrolabe() {
     { dr:  0.18, dy: -0.38, mat: 2.0, ao: 0.72 },
     { dr: -0.12, dy: -0.40, mat: 3.0, ao: 0.82 },
   ];
-  const ringC = buildAstrolabeRingProfile(profC, 160, 64, 10);
+  const ringC = buildAstrolabeRingProfile(profC, 240, 10);
 
   // 22 TRUE PLANETARY-SCALE STRICTLY NESTED NON-OVERLAPPING VOLCANIC OBSIDIAN & OXIDIZED BRONZE RINGS!
   // Scaled 1.8x larger at planetary distance (maxOuter ~1600m) -> ZERO rooftop-chandelier parallax!
@@ -1010,7 +1021,7 @@ export function buildOceanMesh() {
 // GPU-ANIMATED ATMOSPHERIC PARTICLES (NO CHALKY MIST BILLBOARDS, FLOWING STREAMS!)
 // =========================================================================
 export function buildParticles() {
-  const count = 21000;
+  const count = 26500;
   const data = new Float32Array(count * 8);
   const rng = makeRng(3141592);
   let idx = 0;
@@ -1021,8 +1032,8 @@ export function buildParticles() {
     data[o + 4] = speed; data[o + 5] = phase; data[o + 6] = kind; data[o + 7] = seed;
   };
 
-  // 0..1399: Act I Delicate Varied Organic Sea-Mist Micro-Sparks tucked inside side crystal canyons (ZERO uniform circular bokeh dots!)
-  const act1Count = 1400;
+  // 0..1799: Act I Delicate Varied Organic Sea-Mist Micro-Sparks tucked inside side crystal canyons
+  const act1Count = 1800;
   for (let i = 0; i < act1Count; i++) {
     const side = (i & 1) ? 1 : -1;
     let x = side * (72 + rng() * 195);
@@ -1035,25 +1046,25 @@ export function buildParticles() {
     push(x, y, z, 0.08 + Math.pow(rng(), 1.8) * 0.24, 0.9 + rng() * 1.8, rng() * 6.28, 0, rng());
   }
 
-  // Act II Fine Motion-Streaked Geometric Ember Swarms filling the ENTIRE shaft from deepest abyss (y=-760) to Oculus (y=+495)!
+  // Act II Rich 11,500 Ember & Sunbeam-Dust Swarms filling the ENTIRE shaft from deepest abyss (y=-760) to Oculus (y=+495)!
   const act2Start = idx;
-  const act2Count = 6500;
+  const act2Count = 11500;
   for (let i = 0; i < act2Count; i++) {
-    if (i < 460) {
+    if (i < 750) {
       const x = (rng() - 0.5) * 58;
       const y = 5 + rng() * 112;
       const z = 12 - rng() * 240;
-      push(x, y, z, 0.10 + rng() * 0.22, 4.5 + rng() * 8.5, rng() * 6.28, 2.5, rng());
+      push(x, y, z, 0.09 + rng() * 0.21, 4.5 + rng() * 8.5, rng() * 6.28, 2.5, rng());
     } else {
-      const ribbon = i % 7;
-      const rad = 14 + Math.sqrt(rng()) * 86;
-      const ang = (ribbon / 7) * Math.PI * 2 + (rng() - 0.5) * 0.58;
+      const ribbon = i % 9;
+      const rad = 12 + Math.sqrt(rng()) * 88;
+      const ang = (ribbon / 9) * Math.PI * 2 + (rng() - 0.5) * 0.55;
       const y = -760 + rng() * 1255;
-      push(rad, y, ang, 0.09 + rng() * 0.22, 9.0 + rng() * 17.5, rng() * 6.28, 2, rng());
+      push(rad, y, ang, 0.08 + rng() * 0.21, 8.5 + rng() * 17.5, rng() * 6.28, 2, rng());
     }
   }
 
-  // Act III Silky Luminous Golden Star-Dust Streams scaled to Planetary Astrolabe (fine graceful stardust, ZERO chunky orange dashes!)
+  // Act III Silky Luminous Golden Star-Dust Streams scaled to Planetary Astrolabe
   const act3Start = idx;
   const streamCount = 8;
   const streamTilts = [];
@@ -1067,7 +1078,7 @@ export function buildParticles() {
       speed: ((s & 1) ? 1 : -1) * (0.040 + (1.0 - f) * 0.11),
     });
   }
-  const act3Count = 8500;
+  const act3Count = 11000;
   for (let i = 0; i < act3Count; i++) {
     const st = streamTilts[i % streamCount];
     const clusterAng = (Math.floor(i / 52) * 1.6180339) * Math.PI * 2;

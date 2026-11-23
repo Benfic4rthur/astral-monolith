@@ -5,7 +5,7 @@
 <h1 align="center">ASTRAL MONOLITH</h1>
 
 <p align="center">
-  <strong>A 100% procedural, three-act real-time WebGPU cosmic journey packed into a single 181 KB self-contained HTML file.</strong>
+  <strong>A three-act real-time WebGPU cosmic journey — pure WGSL shaders, 6 living Time-Era cathedral portals, deep-field galaxies, and reverse-tape Web Audio packed into a single 767 KB self-contained HTML file.</strong>
 </p>
 
 <p align="center">
@@ -22,8 +22,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/WebGPU%20%2B%20WGSL-Pure%20Zero--Dep-1E4D6B?style=flat-square" alt="Pure WebGPU and WGSL" />
-  <img src="https://img.shields.io/badge/Bundle-180.70%20KB%20Single%20File-2D5A4B?style=flat-square" alt="180.70 KB Single File" />
-  <img src="https://img.shields.io/badge/Performance-5.52%20ms%20GPU%20%40%20120%20FPS-6B4C2A?style=flat-square" alt="5.52 ms GPU at 120 FPS" />
+  <img src="https://img.shields.io/badge/Bundle-767.27%20KB%20Single%20File-2D5A4B?style=flat-square" alt="767.27 KB Single File" />
+  <img src="https://img.shields.io/badge/Performance-6.79%20ms%20GPU%20%40%2060%20FPS%20Locked-6B4C2A?style=flat-square" alt="6.79 ms GPU at 60 FPS Locked" />
   <img src="https://img.shields.io/badge/License-MIT-4A5568?style=flat-square" alt="MIT License" />
 </p>
 
@@ -33,15 +33,15 @@
 
 **[Launch Astral Monolith Live → `https://benfic4rthur.github.io/astral-monolith/`](https://benfic4rthur.github.io/astral-monolith/)**
 
-> **Browser requirement:** Requires a WebGPU-enabled browser with hardware GPU acceleration (Chrome, Edge, or Safari Technology Preview). Click either **Guided Tour (90s)** or **Free Flight** on the start screen to launch the journey and initialize the procedural Web Audio soundscape.
+> **Browser requirement:** Requires a WebGPU-enabled browser with hardware GPU acceleration (Chrome, Edge, or Safari Technology Preview). Click **Guided Tour (90s)** or **Free Flight** on the start screen to dissolve the menu into cosmic sand, launch seamlessly with zero camera cut, and initialize the procedural Web Audio + reverse-tape engine.
 
 ---
 
 ### Built with [easyRenderCreate](https://github.com/Benfic4rthur/easyRenderCreate)
 
-**Astral Monolith** is a real-world production showcase built from a single specification prompt generated with **[easyRenderCreate](https://github.com/Benfic4rthur/easyRenderCreate)** — an interactive workflow for turning creative concepts into complete, build-ready prompts for purely code-generated 3D worlds, browser games, and procedural renders.
+**Astral Monolith** is a real-world production showcase built from a single specification prompt generated with **[easyRenderCreate](https://github.com/Benfic4rthur/easyRenderCreate)** — an interactive workflow for turning creative concepts into complete, build-ready prompts for code-generated 3D worlds, browser games, and procedural renders.
 
-You can read the exact, unmodified verbatim prompt that initiated this project in **[`prompt.txt`](./prompt.txt)**. Everything in this repository — the WebGPU renderer, WGSL shaders, procedural geometry, GPU-baked PBR material maps, 90-second camera choreography, and Web Audio synthesizer — was created from that prompt with zero external assets or 3D libraries.
+You can read the exact, unmodified verbatim prompt that initiated this project in **[`prompt.txt`](./prompt.txt)**. Everything in this repository — the WebGPU renderer, WGSL shaders, procedural geometry, `1024×1024` GPU-baked PBR material maps, embedded 6-layer WebP Time-Era cathedral portal atlas, 90-second camera choreography, and real-time reverse-tape Web Audio synthesizer — builds into a single self-contained `index.html` with zero external runtime fetches or 3D libraries.
 
 ---
 
@@ -50,59 +50,59 @@ You can read the exact, unmodified verbatim prompt that initiated this project i
 Every frame below is captured directly at native `1920×1080` from the real-time hardware WebGPU renderer in `index.html`.
 
 #### Act I — Mirrored Prism Sea
-*Translucent refractive crystal spires, cyan-violet geometric aurora curtains, and a colossal banded gas giant mirrored across a slowly rippling obsidian ocean.*
+*Translucent spectral-refractive quartz spires, 3D raymarched volumetric aurora curtains, and a colossal banded gas giant mirrored across a 14-wave obsidian ocean with underwater parallax caustics.*
 
 <table>
   <tr>
     <td width="50%">
       <img src="assets/act1_prism_corridor.png" alt="Act I — Hero Prism Corridor and Gas Giant" />
-      <br /><sub><em>Hero Prism Corridor — Banded gas giant, basalt portal, and crystal canyon reflected in dark water.</em></sub>
+      <br /><sub><em>Hero Prism Corridor — Banded gas giant, 3D volumetric auroras, basalt portal, and crystal canyon reflected in caustic dark water.</em></sub>
     </td>
     <td width="50%">
-      <img src="assets/act1_wide_sea_auroras.png" alt="Act I — Wide Sea and Geometric Auroras" />
-      <br /><sub><em>Wide Sea & Auroras — Panoramic view across towering crystal monoliths and aurora curtains.</em></sub>
+      <img src="assets/act1_wide_sea_auroras.png" alt="Act I — Wide Sea and Volumetric Auroras" />
+      <br /><sub><em>Wide Sea & Volumetric Auroras — Panoramic view across towering refractive quartz monoliths and layered aurora curtains.</em></sub>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <img src="assets/act1_crystal_refraction.png" alt="Act I — Refractive Crystal Edge Close-Up" />
-      <br /><sub><em>Crystal Refraction Close-Up — Chromatic dispersion and grazing highlights over rippled water.</em></sub>
+      <img src="assets/act1_crystal_refraction.png" alt="Act I — Spectral Crystal Refraction Close-Up" />
+      <br /><sub><em>Spectral Crystal Refraction — 5-band chromatic rainbow dispersion and internal parallax facets rising from rippled water.</em></sub>
     </td>
     <td width="50%">
       <img src="assets/act1_portal_monolith.png" alt="Act I — Fractured Portal Monolith" />
-      <br /><sub><em>Fractured Portal Monolith — Vaulted basalt threshold bridging the prism sea and cathedral abyss.</em></sub>
+      <br /><sub><em>Fractured Portal Monolith — Vaulted basalt threshold bridging the prism sea and the spark-filled cathedral shaft.</em></sub>
     </td>
   </tr>
 </table>
 
-#### Act II — Fractal Cathedral
-*An endless Piranesi vertical shaft of repeating arches, bridges, and sliding stone blocks pierced by solar-amber volumetric rays, glowing crimson crevices, and a circular Pantheon oculus.*
+#### Act II — Fractal Cathedral & Living Time-Era Portals
+*An endless Piranesi vertical shaft of repeating arches, bridges, and sliding stone blocks pierced by solar-amber volumetric rays, glowing crimson crevices, six widely spaced living portal windows gazing into different eras of history, and a circular Pantheon oculus.*
 
 <table>
   <tr>
     <td width="50%">
-      <img src="assets/act2_fractal_cathedral.png" alt="Act II — Fractal Cathedral Shaft and Amber Rays" />
-      <br /><sub><em>Fractal Cathedral Shaft — Multi-tier basalt arches cut by sunlit amber shafts, crimson seams, and rising sparks.</em></sub>
+      <img src="assets/act2_fractal_cathedral.png" alt="Act II — Fractal Cathedral Shaft and Living Time-Era Portals" />
+      <br /><sub><em>Fractal Cathedral & Time-Era Portals — Basalt arches cut by sunlit amber shafts, drifting embers, and living 3D-parallax portals glimpsing WWII searchlights (upper right) and Stone Age cavemen around a campfire (lower right).</em></sub>
     </td>
     <td width="50%">
       <img src="assets/act2_pantheon_oculus.png" alt="Act II — Pantheon Dome Oculus" />
-      <br /><sub><em>Pantheon Dome Oculus — Concentric stone dome aperture framing the orbital astrolabe before space emergence.</em></sub>
+      <br /><sub><em>Pantheon Dome Oculus — Concentric stone dome aperture framing the smooth 240-segment orbital astrolabe and deep-field cosmos before space emergence.</em></sub>
     </td>
   </tr>
 </table>
 
-#### Act III — Orbital Astrolabe & Supernova Climax
-*Twenty-two counter-rotating volcanic obsidian and oxidized brushed-bronze planetary rings encircling a blinding white dwarf star, culminating in a radiant supernova shockwave.*
+#### Act III — Orbital Astrolabe, Deep-Field Galaxies & Supernova Climax
+*Twenty-two smooth 240-segment counter-rotating volcanic obsidian and oxidized brushed-bronze planetary rings encircling a blinding white dwarf star against a deep-field universe of spiral and Sombrero galaxies, culminating in an invisible-radiation spacetime-distortion supernova shockwave.*
 
 <table>
   <tr>
     <td width="50%">
-      <img src="assets/act3_orbital_astrolabe.png" alt="Act III — Orbital Astrolabe and White Dwarf" />
-      <br /><sub><em>Aligned Orbital Astrolabe — Concentric obsidian and brushed-bronze rings backlit by the white dwarf core.</em></sub>
+      <img src="assets/act3_orbital_astrolabe.png" alt="Act III — Orbital Astrolabe and Deep-Field Galaxies" />
+      <br /><sub><em>Aligned Orbital Astrolabe — 240-segment obsidian and brushed-bronze rings with real-time 22-ring analytical eclipse shadows set against deep-field spiral and Sombrero galaxies.</em></sub>
     </td>
     <td width="50%">
-      <img src="assets/act3_supernova_finale.png" alt="Act III — Supernova Climax" />
-      <br /><sub><em>Supernova Finale — Expanding plasma shockwave and incandescent climax synced to four-layer procedural audio.</em></sub>
+      <img src="assets/act3_supernova_finale.png" alt="Act III — Invisible Radiation Supernova Climax" />
+      <br /><sub><em>Supernova Finale — Expanding invisible-radiation spacetime-distortion wavefronts bending the astrolabe rings and starfield around the incandescent detonation, synced to four-layer procedural audio.</em></sub>
     </td>
   </tr>
 </table>
@@ -111,32 +111,36 @@ Every frame below is captured directly at native `1920×1080` from the real-time
 
 ### Technical Highlights
 
-- **Pure WebGPU + WGSL + Web Audio (Zero Dependencies):** No Three.js, Babylon.js, or runtime libraries; no external texture, mesh, or audio files.
-- **Single Self-Contained `index.html`:** Bundles and minifies all JS modules, WGSL shaders, CSS, and markup into a single **180.70 KB** (`185,038` bytes) file via `node build.mjs`.
+- **Pure WebGPU + WGSL + Web Audio (Zero Dependencies):** No Three.js, Babylon.js, or external runtime libraries; zero network fetches at runtime.
+- **Single Self-Contained `index.html`:** Bundles and minifies all JS modules, WGSL shaders, CSS, inline orbital-rings SVG favicon, and the 6-layer `512×896` WebP Time-Era cathedral portal atlas into a single **767.27 KB** (`785,686` bytes) file via `node build.mjs`.
+- **Phase-Locked `60.0 FPS` Cinema Pacer:** Exact `16.67 ms` (`1000/60`) vblank-locked frame pacing with constant `1/60s` on-phase simulation steps, delivering a flat frametime graph with zero micro-stutter on both 60 Hz and 120 Hz ProMotion displays (`?uncapped=1` override available).
 - **Zero Per-Frame JavaScript Allocations:** Uniform scratchpads (including all 22 analytical orbital ring planes), camera/projection matrices, flight spline scratch arrays, and telemetry ring buffers are preallocated once at startup to prevent garbage-collection hitches.
-- **GPU-Baked 512×512 Mipmapped PBR Textures:** Synthesizes chiseled matte-graphite stone, oxidized brushed bronze & volcanic obsidian, and faceted crystal material maps directly on the GPU at startup with full hardware mipmap chains and anisotropic trilinear sampling.
-- **Ultra Cinematic Lighting, Shadows & Volumetrics:**
-  - **Real-Time Analytical 22-Ring Eclipse Shadows:** Inner orbital rings cast moving soft-penumbra eclipse shadows across outer volcanic obsidian and brushed-bronze rings using radius-sorted early-exit plane evaluation.
-  - **Horizon-Aware World-Space SSAO:** 7-tap Vogel-spiral contact shadows reconstructed directly from `depthMsaa` (zero extra render passes) with world-space range falloff and 4-tap bilinear upsampling, grounding arches, piers, and coffers without foreground halos.
-  - **Animated Ocean & Crystal-Base Caustics:** Dual-layer procedural refractive caustics shimmering across shallow dark water and rising up the submerged lower faces of every crystal prism.
-  - **High-Step Depth-Aware Volumetrics:** Multi-octave curling Act I sea mist, 24-step Act II solar-amber god rays with 2-octave 3D illuminated dust, and 48-step Act III piercing blue-white eclipse shafts with 9-tap depth-preserving radial blur.
-  - **Multi-Pass HDR & Specular/Edge Anti-Aliasing:** `4× MSAA` main opaque architecture pass + `1305×734` (`0.68×`) `4× MSAA` planar mirror ocean reflection pass, Kaplanyan / Toksvig specular AA, multi-stage HDR bloom, AgX filmic tonemapping, and **post-tonemap FXAA 3.11 Quality** with triangular anti-banding dither.
-- **90-Second Guided Tour & 4-Layer Supernova Audio Climax:** Continuous Catmull-Rom flight across all three realms paired with a 100% procedural Web Audio soundscape (3.4 s synthesized stereo convolution reverb, seamless looped pink/brown noise surf, act-crossfading harmonic drones, and a 4-layer supernova climax combining pitch-swept harmonic tension risers, seismic sub-bass detonation rumble, swept resonant plasma shockwave noise, and a stereo-panned A-major-9th celestial choir swell).
-- **Hardware `timestamp-query` Profiler:** Real-time HUD displaying live FPS, hardware GPU frame time (`ms`), and a 120-sample scrolling performance sparkline.
+- **GPU-Baked `1024×1024` Mipmapped PBR Textures:** Synthesizes chiseled matte-graphite stone, oxidized brushed bronze & volcanic obsidian, and faceted quartz crystal material maps directly on the GPU at startup with full 11-level hardware mipmap chains and 8× anisotropic trilinear sampling.
+- **Six Widely Spaced Living Time-Era Cathedral Portals:** Decoded at startup into a 6-layer mipmapped WebGPU `texture_2d_array` (`[512, 896, 6]`) spiraling chronologically across the cathedral tiers — **Dinosaurs**, **Stone Age Cavemen**, **Knights Templar**, **World War II**, **Modern New York City**, and **Humans Colonizing Mars**. Every portal combines real-time 3D view-angle depth parallax with continuous aperiodic GPU animations (volcanic plumes/embers/soaring pterosaur, chaotic campfire flicker, billowing banners, sweeping WWII searchlights & randomized flak bursts, twinkling NYC skyline/river traffic, and Martian dust/Starship cryogenic vents) that never visibly repeat even while hovering close in Free Flight.
+- **Universal Cosmic Sand Menu & Zero-Cut Launch:** Synchronized diagonal CSS masking erodes the live HTML start menu into ~8,500 sparkling golden-cyan stardust grains swept away by wind right on the Hero Prism Corridor pose — zero camera cut into Guided Tour or Free Flight. Rewinding the Guided Tour back to `0.0s` reverses the wind and condenses the sand back into the clickable menu.
+- **Interactive Time Scrubbing (`A` −3× / `D` +3×) & Real-Time Reverse-Tape `AudioWorklet`:** Holding `D` / `→` fast-forwards the Guided Tour at `+3×`; holding `A` / `←` rewinds time at `−3×` through an inline zero-allocation `AudioWorklet` (`TapeTimeProcessor`) backed by a 40-second stereo circular PCM tape buffer that plays the exact recorded audio mix backwards 1:1 with visuals, seamlessly crossfading into overlapping Hann-windowed live reverse grains if rewinding past 40 seconds.
+- **Ultra Cinematic Lighting, Shadows, Galaxies & Spacetime Distortion:**
+  - **Smooth 240-Segment Astrolabe & Real-Time 22-Ring Eclipse Shadows:** Circumferentially smooth rings with Kaplanyan/Toksvig specular AA and radius-sorted early-exit soft-penumbra eclipse shadows cast across outer volcanic obsidian and brushed-bronze rings.
+  - **Beyond-Time Deep-Field Cosmos:** 8 bespoke procedural spiral & edge-on Sombrero galaxies with seamless C2 boundary falloff, dark interstellar dust lanes, embedded arm stars, cosmic web filaments, gravitational-lensing horizon arcs, and a 4-layer diffraction-spike starfield.
+  - **Seamless 360° Invisible Radiation Spacetime Distortion:** Outward-radiating Cartesian noise shockwaves and Einstein gravitational lensing bend the rings and starfield around the Supernova core with subtle optical chromatic dispersion and zero polar seams.
+  - **3D Volumetric Auroras, Spectral Quartz & Parallax Caustics:** 6-step altitude-slab raymarched aurora curtains, 5-band spectral rainbow quartz crystals with 3-depth internal parallax facets, and a 14-wave mirrored obsidian ocean (`0.62×` `4× MSAA` reflection) with Snell-refracted underwater caustics.
+  - **Multi-Pass HDR, Dual-Scale GTAO & FXAA 3.11:** Native `1920×1080` `4× MSAA` main pass, `0.55×` (`1056×594`) depth-aware volumetrics & 8-tap dual-scale GTAO, 4-mip HDR bloom pyramid, AgX filmic tonemapping, and post-tonemap **FXAA 3.11 Quality** with triangular anti-banding dither.
+- **Hardware `timestamp-query` Profiler:** Real-time HUD displaying live 60 FPS lock status, hardware GPU frame time (`ms`), and a 120-sample scrolling performance sparkline.
 
 ---
 
 ### Verified Performance Benchmarks
 
-Measured on **Apple M1 Pro (16-core GPU, 32 GB RAM)** running macOS Chrome WebGPU (`Metal-3` backend) at **native `1920×1080`** over a clean, unrecorded 60-second scripted tour (**7,197 hardware-timestamped frames**):
+Measured on **Apple M1 Pro (16-core GPU, 32 GB RAM)** running macOS Chrome WebGPU (`Metal-3` backend) at **native `1920×1080`** over a clean, unrecorded 60-second scripted tour (**3,600 hardware-timestamped frames**, phase-locked to 60 FPS):
 
 | Metric | Measured Result | Target Gate |
 | :--- | :--- | :--- |
-| **Single-File Bundle (`index.html`)** | **180.70 KB** (`185,038 B`, 0 external assets) | Single self-contained file |
-| **GPU Frame Time (`timestamp-query`)** | **5.52 ms avg** · 5.51 ms p50 · 6.36 ms p95 · 6.95 ms p99 · **9.04 ms max** | Avg ≤ 11.0 ms · Max ≤ 16.7 ms |
-| **Per-Act GPU Average** | Act I: **5.27 ms** · Act II: **5.46 ms** · Act III: **5.78 ms** | ≤ 11.0 ms across all realms |
-| **Wall-Clock Frame Pacing** | **8.33 ms avg (120.0 FPS locked)** · 8.30 ms p50 · 8.90 ms p95 · 9.20 ms p99 | Stable 120 Hz pacing |
-| **GPU Frames Over `16.7 ms`** | **0 / 7,197** (`0.00%`, peak GPU frame `9.04 ms`) | 0 GPU drops |
+| **Single-File Bundle (`index.html`)** | **767.27 KB** (`785,686 B`, embeds 6-layer WebP Time-Era atlas, 0 external requests) | Single self-contained file |
+| **GPU Frame Time (`timestamp-query`)** | **6.79 ms avg** · 4.72 ms min · 6.68 ms p50 · 8.26 ms p95 · 9.90 ms p99 · **12.91 ms max** | Avg ≤ 11.0 ms · Max ≤ 16.7 ms |
+| **Per-Act GPU Average** | Act I: **7.23 ms** · Act II: **6.42 ms** · Act III: **6.76 ms** | ≤ 11.0 ms across all realms |
+| **Wall-Clock Frame Pacing** | **16.67 ms avg (60.0 FPS locked)** · 16.70 ms p50 · 17.20 ms p95 · 17.60 ms p99 · **18.50 ms max** | Locked 60 Hz pacing |
+| **GPU Frames Over `16.7 ms`** | **0 / 3,600** (`0.00%`, peak GPU frame `12.91 ms`) | 0 GPU drops |
+| **Missed 60 Hz Vblanks (`> 20 ms`)** | **0 / 3,600** (`0.00%`) | 0 frame drops |
 | **WebGPU / Console Errors** | **0** | 0 errors |
 
 ---
@@ -145,23 +149,25 @@ Measured on **Apple M1 Pro (16-core GPU, 32 GB RAM)** running macOS Chrome WebGP
 
 | Input | Action |
 | :--- | :--- |
-| **Guided Tour (90s)** / **Free Flight** | Launch from the start screen (also initializes Web Audio) |
-| **`W` `A` `S` `D`** or **Arrow Keys** | Move forward, backward, strafe left/right (automatically switches to Free Flight) |
-| **`Q` / `E`** | Descend / Ascend vertically |
-| **`Shift`** | Flight speed boost (`2.8×`) |
+| **Guided Tour (90s)** / **Free Flight** | Dissolve the start screen into cosmic sand, launch seamlessly, and initialize Web Audio |
+| **`A` / `←`** *(Guided Tour)* | Rewind time backwards at **`−3×`** with **real-time reversed stereo tape audio**; rewinding to `0.0s` reassembles the Start Menu from sand |
+| **`D` / `→`** *(Guided Tour)* | Advance time forward at **`+3×`** with accelerated cosmic tape audio |
+| **`W` `S` `Q` `E`** or **`↑` `↓`** *(Guided Tour)* | Seamlessly take over into **Free Flight** (`WASD` / `Arrows` move & strafe; `Q` / `E` descend & ascend) |
+| **`Shift`** *(Free Flight)* | Flight speed boost (`2.8×`) |
 | **Click Canvas + Mouse** | Pointer Lock free look (moving the mouse exits Guided Tour into Free Flight) |
 | **`T`** | Toggle between Guided Tour and Free Flight |
-| **`M`** | Mute / Unmute procedural Web Audio soundscape |
+| **`M`** | Mute / Unmute procedural Web Audio & reverse-tape engine |
 | **`H`** | Show / Hide HUD and live GPU FPS/ms sparkline profiler |
 | **`Esc`** | Release mouse Pointer Lock |
 
-> **Free Flight Progression & Interactive Supernova:** Free Flight enforces continuous architectural world boundaries — fly through the fractured Portal Monolith into the vaulted nave, explore down into the ember-filled cathedral abyss or ascend through the circular Pantheon Dome Oculus into deep space, and approach the White Dwarf inside the astrolabe to trigger and accelerate the full interactive Supernova detonation.
+> **Free Flight Progression & Living Portals:** Free Flight enforces continuous architectural world boundaries — fly through the fractured Portal Monolith into the vaulted nave, pause beside any of the six living Time-Era cathedral portals to watch their continuous aperiodic animations and 3D depth parallax, ascend through the circular Pantheon Dome Oculus into the deep-field galaxy space, and approach the White Dwarf inside the astrolabe to trigger and accelerate the full interactive Supernova detonation.
 
 #### Inspection & Benchmark Query Parameters
 `index.html` also accepts optional URL parameters for deterministic inspection and GPU benchmarking:
 - `?pose=0` .. `?pose=5` — Jump directly to any of the 6 fixed verification camera poses.
 - `?tourTime=<seconds>` — Jump to a specific timestamp along the 90-second flight.
 - `?bench=60&res=1920x1080` — Run an automated `timestamp-query` benchmark over the full three-act tour.
+- `?uncapped=1` — Disable the 60 FPS phase-locked pacer for raw uncapped framerate testing.
 
 ---
 
@@ -185,19 +191,20 @@ Open `http://localhost:8080` in a WebGPU-capable browser.
 
 ```text
 .
-├── index.html          # Self-contained minified WebGPU production build (180.70 KB)
+├── index.html          # Self-contained minified WebGPU production build (767.27 KB)
 ├── build.mjs           # Zero-dependency bundler & safe JS/WGSL minifier
 ├── prompt.txt          # Exact verbatim original prompt generated with easyRenderCreate
 ├── src/
-│   ├── template.html   # HTML shell & start menu / HUD markup
-│   ├── style.css       # UI and telemetry styling
+│   ├── template.html   # HTML shell, orbital-rings SVG favicon & start menu / HUD markup
+│   ├── style.css       # UI, sand-mask transition & telemetry styling
 │   ├── math.js         # Preallocated mat4 / vector math & act-weight blending
-│   ├── geom.js         # Procedural crystal blades, monolith, fractal cathedral & astrolabe meshes
-│   ├── shaders.js      # All WGSL pipelines (512×512 PBR baker, sky, PBR, water, crystal, bloom, FXAA)
+│   ├── geom.js         # Crystal spires, monolith, cathedral w/ 6 Time-Era portals & 240-seg astrolabe
+│   ├── eras_atlas.js   # Embedded 6-layer WebP IMAX Time-Era cathedral portal atlas
+│   ├── shaders.js      # WGSL pipelines (1024×1024 PBR baker, 3D auroras, Time-Era parallax, galaxies, spacetime warp, FXAA)
 │   ├── tour.js         # 90s Catmull-Rom guided flight keyframes, supernova curve & 6 fixed poses
-│   ├── audio.js        # Procedural Web Audio synthesizer & 4-layer supernova climax engine
-│   └── main.js         # WebGPU engine, zero-alloc frame loop & timestamp-query profiler
-├── assets/             # Widescreen cover artwork & native 1920×1080 real-time WebGPU captures
+│   ├── audio.js        # Procedural Web Audio synthesizer, 40s reverse-tape AudioWorklet & sand-sweep FX
+│   └── main.js         # WebGPU engine, 60 FPS phase-locked pacer, MenuSandFX & timestamp-query profiler
+├── assets/             # Widescreen cover triptych & native 1920×1080 real-time WebGPU captures
 ├── LICENSE             # MIT License
 └── README.md
 ```

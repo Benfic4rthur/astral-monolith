@@ -59,13 +59,12 @@ export const POSES = [
 // Elevated clean nave entry, gentle stately abyss gaze (ZERO whip!), lower/upper-third diagonal bridges,
 // dead-center Pantheon dome Oculus framing the planetary astrolabe BEFORE exit -> Planetary Orbit -> Supernova!
 const KF = [
-  // ACT I (0s - 27s): Wide Mirrored Sea & Auroras -> Soaring Fractal Prism Canyon -> Intimate Crystal Glide -> Fractured Portal Monolith
-  [0.0,  -128,  42,  498,   12,   56,   20,  66,  0.00], // Wide sea & geometric cyan/violet auroras (Pose 2)
-  [5.0,   -58,  26,  446,   -4,   58,  -80,  62,  0.03], // Sweeping across open rippled mirrored ocean
-  [10.0,    0,  14,  368,   -3,   60, -140,  58,  0.00], // Hero Prism Corridor framing colossal banded gas giant (Pose 1)
-  [15.0,  -16,  10,  275,  -10,   36,   20,  56, -0.04], // Low glide beside crystal-clear refractive quartz blades
-  [19.2,   12,  15,  182,    2,   44,  -80,  57,  0.03], // Weaving across mirrored obsidian water between prism cliffs
-  [23.2,    4,  24,   96,    0,   52, -120,  58,  0.01], // Approaching Fractured Portal Monolith (Pose 3)
+  // ACT I (0s - 27s): Starts seamlessly from EXACT Start Menu Hero Prism Corridor (ZERO camera cut on start OR rewind to 0s!) -> Sweeps continuously forward into Fractured Portal Monolith
+  [0.0,     0,  14,  368,   -3,   60, -140,  58,  0.00], // Exact Menu pose: Hero Prism Corridor framing colossal banded gas giant
+  [5.5,   -26,  22,  332,    6,   56, -110,  60,  0.03], // Sweeping forward & gently wide across rippled mirrored sea & 3D auroras
+  [11.5,  -18,  11,  268,   -8,   38,  -10,  57, -0.04], // Low glide beside crystal-clear 5-band refractive quartz blades
+  [17.5,   14,  15,  186,    2,   44,  -80,  57,  0.03], // Weaving across mirrored caustic ocean between prism cliffs
+  [22.8,    4,  24,   96,    0,   52, -120,  58,  0.01], // Approaching Fractured Portal Monolith (Pose 3)
   [27.0,    0,  36,   16,    0,   42, -220,  59,  0.00], // Elevated graceful entry through vaulted monolithic basalt portal
 
   // ACT II (27s - 58.5s): Clean Elevated Nave Glide -> Stately Abyss Gaze -> Monumental Shaft -> Pantheon Dome Oculus Framing Astrolabe!
@@ -121,11 +120,11 @@ export function evalTourCamera(out8, timeSec, duration = TOUR_DURATION) {
   return out8;
 }
 
-// Normalized supernova explosion curve (0 until final 13% of tour -> ~11.7s of breathtaking Hubble-style expanding nebula + approaching fireball -> pure #FFFFFF white!)
+// Normalized supernova explosion curve (0 until final 15.5% of tour -> ~14s of progressive invisible radiation spacetime warp + expanding nebula + fireball -> pure #FFFFFF white!)
 export function evalSupernova(timeSec, duration = TOUR_DURATION) {
   const u = clamp(timeSec / Math.max(1.0, duration), 0.0, 1.0);
-  if (u <= 0.870) return 0.0;
-  const s = clamp((u - 0.870) / 0.130, 0.0, 1.0);
-  // Smooth ease-in with rich time spent in 0.25..0.75 (colorful nebula beauty!) before accelerating into pure white!
-  return s * (0.45 + 0.55 * s * s);
+  if (u <= 0.845) return 0.0;
+  const s = clamp((u - 0.845) / 0.155, 0.0, 1.0);
+  // Smooth ease-in with rich time spent in radiation buildup & colorful nebula before accelerating into pure white!
+  return s * (0.40 + 0.60 * s * s);
 }

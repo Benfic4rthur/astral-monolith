@@ -1,4 +1,175 @@
-// 100% Procedural Three-Act Web Audio Ambient Soundscape (zero assets, zero per-frame allocations)
+// 100% Procedural Three-Act Web Audio Ambient Soundscape + Real-Time 40s Reverse-Tape Time-Scrub Engine (zero assets, zero per-frame allocations)
+
+const TAPE_WORKLET_CODE = `
+class TapeTimeProcessor extends AudioWorkletProcessor {
+  static get parameterDescriptors() {
+    return [{ name: 'rate', defaultValue: 1.0, minValue: -8.0, maxValue: 8.0, automationRate: 'k-rate' }];
+  }
+  constructor() {
+    super();
+    this.sr = sampleRate;
+    this.bufLen = Math.floor(this.sr * 40);
+    this.bufL = new Float32Array(this.bufLen);
+    this.bufR = new Float32Array(this.bufLen);
+    this.writeIdx = 0;
+    this.avail = 0;
+    this.readPos = 0;
+    this.wasRev = false;
+    this.revMix = 0;
+    this.ffMix = 0;
+    this.lpL = 0;
+    this.lpR = 0;
+    this.gLen = Math.floor(this.sr * 1.2);
+    this.gBufL = new Float32Array(this.gLen);
+    this.gBufR = new Float32Array(this.gLen);
+    this.gWrite = 0;
+    this.gPhaseA = 0;
+    this.gPhaseB = 0.5;
+    this.gStartA = 0;
+    this.gStartB = 0;
+    this.ffPhaseA = 0;
+    this.ffPhaseB = 0.5;
+    this.ffStartA = 0;
+    this.ffStartB = 0;
+  }
+  sampleBuf(buf, pos, len) {
+    let p = pos % len;
+    if (p < 0) p += len;
+    const i0 = p | 0;
+    const i1 = (i0 + 1) % len;
+    const f = p - i0;
+    return buf[i0] + (buf[i1] - buf[i0]) * f;
+  }
+  process(inputs, outputs, parameters) {
+    const inp = inputs[0];
+    const out = outputs[0];
+    if (!out || !out[0]) return true;
+    const outL = out[0];
+    const outR = out[1] || out[0];
+    const inL = (inp && inp[0]) ? inp[0] : null;
+    const inR = (inp && inp[1]) ? inp[1] : inL;
+    const N = outL.length;
+    const rate = parameters.rate[0];
+    const isRev = rate < -0.08;
+    const isFF = rate > 1.25;
+    const isStopped = Math.abs(rate) < 0.08;
+    const bLen = this.bufLen;
+    const gLen = this.gLen;
+    const sr = this.sr;
+    const grainSamp = Math.floor(sr * 0.42);
+    const ffGrainSamp = Math.floor(sr * 0.16);
+    const fadeEdge = sr * 0.28;
+
+    if (isRev && !this.wasRev) {
+      this.readPos = (this.writeIdx - 2 + bLen) % bLen;
+      this.gStartA = (this.gWrite - 2 + gLen) % gLen;
+      this.gStartB = (this.gWrite - Math.floor(grainSamp * 0.5) + gLen) % gLen;
+      this.wasRev = true;
+    } else if (!isRev && this.wasRev) {
+      this.writeIdx = ((Math.floor(this.readPos) % bLen) + bLen) % bLen;
+      this.wasRev = false;
+    }
+
+    const revTarget = isRev ? 1.0 : 0.0;
+    const ffTarget = isFF ? Math.min(1.0, (rate - 1.25) / 1.0) : 0.0;
+    const absRate = Math.abs(rate);
+    const tapeStep = Math.max(0.25, Math.min(6.0, absRate));
+    const gRevStep = Math.max(1.0, Math.min(2.6, 0.85 + absRate * 0.35));
+    const ffStep = Math.max(1.25, Math.min(2.15, 1.0 + (rate - 1.0) * 0.24));
+
+    for (let i = 0; i < N; i++) {
+      const sL = inL ? inL[i] : 0;
+      const sR = inR ? inR[i] : 0;
+
+      this.gBufL[this.gWrite] = sL;
+      this.gBufR[this.gWrite] = sR;
+      this.gWrite = (this.gWrite + 1) % gLen;
+
+      if (!isRev && !isStopped) {
+        this.bufL[this.writeIdx] = sL;
+        this.bufR[this.writeIdx] = sR;
+        this.writeIdx = (this.writeIdx + 1) % bLen;
+        if (this.avail < bLen - 4) this.avail++;
+      }
+
+      this.revMix += (revTarget - this.revMix) * 0.0018;
+      this.ffMix += (ffTarget - this.ffMix) * 0.0018;
+
+      let revL = 0, revR = 0;
+      if (this.revMix > 0.0005) {
+        let tapeL = 0, tapeR = 0;
+        let tapeW = 0;
+        if (this.avail > 4) {
+          tapeL = this.sampleBuf(this.bufL, this.readPos, bLen);
+          tapeR = this.sampleBuf(this.bufR, this.readPos, bLen);
+          tapeW = this.avail < fadeEdge ? (this.avail / fadeEdge) : 1.0;
+          this.readPos -= tapeStep;
+          if (this.readPos < 0) this.readPos += bLen;
+          this.avail = Math.max(0, this.avail - tapeStep);
+        }
+
+        let grL = 0, grR = 0;
+        if (tapeW < 0.999) {
+          this.gPhaseA += gRevStep / grainSamp;
+          if (this.gPhaseA >= 1.0) {
+            this.gPhaseA -= 1.0;
+            this.gStartA = (this.gWrite - 2 + gLen) % gLen;
+          }
+          this.gPhaseB += gRevStep / grainSamp;
+          if (this.gPhaseB >= 1.0) {
+            this.gPhaseB -= 1.0;
+            this.gStartB = (this.gWrite - 2 + gLen) % gLen;
+          }
+          const pA = this.gStartA - this.gPhaseA * grainSamp;
+          const pB = this.gStartB - this.gPhaseB * grainSamp;
+          const wA = Math.sin(this.gPhaseA * 3.14159265);
+          const wB = Math.sin(this.gPhaseB * 3.14159265);
+          const hA = wA * wA;
+          const hB = wB * wB;
+          grL = this.sampleBuf(this.gBufL, pA, gLen) * hA + this.sampleBuf(this.gBufL, pB, gLen) * hB;
+          grR = this.sampleBuf(this.gBufR, pA, gLen) * hA + this.sampleBuf(this.gBufR, pB, gLen) * hB;
+        }
+        const rawRL = tapeL * tapeW + grL * (1.0 - tapeW);
+        const rawRR = tapeR * tapeW + grR * (1.0 - tapeW);
+        const lpCoef = Math.max(0.18, Math.min(0.65, 0.72 - absRate * 0.09));
+        this.lpL += (rawRL - this.lpL) * lpCoef;
+        this.lpR += (rawRR - this.lpR) * lpCoef;
+        revL = this.lpL * 1.08;
+        revR = this.lpR * 1.08;
+      }
+
+      let fwdL = sL, fwdR = sR;
+      if (this.ffMix > 0.0005) {
+        this.ffPhaseA += 1.0 / ffGrainSamp;
+        if (this.ffPhaseA >= 1.0) {
+          this.ffPhaseA -= 1.0;
+          this.ffStartA = (this.gWrite - Math.floor(ffGrainSamp * ffStep) - 4 + gLen) % gLen;
+        }
+        this.ffPhaseB += 1.0 / ffGrainSamp;
+        if (this.ffPhaseB >= 1.0) {
+          this.ffPhaseB -= 1.0;
+          this.ffStartB = (this.gWrite - Math.floor(ffGrainSamp * ffStep) - 4 + gLen) % gLen;
+        }
+        const fpA = this.ffStartA + this.ffPhaseA * ffGrainSamp * ffStep;
+        const fpB = this.ffStartB + this.ffPhaseB * ffGrainSamp * ffStep;
+        const fwA = Math.sin(this.ffPhaseA * 3.14159265);
+        const fwB = Math.sin(this.ffPhaseB * 3.14159265);
+        const fhA = fwA * fwA;
+        const fhB = fwB * fwB;
+        const fL = this.sampleBuf(this.gBufL, fpA, gLen) * fhA + this.sampleBuf(this.gBufL, fpB, gLen) * fhB;
+        const fR = this.sampleBuf(this.gBufR, fpA, gLen) * fhA + this.sampleBuf(this.gBufR, fpB, gLen) * fhB;
+        fwdL = sL * (1.0 - this.ffMix * 0.78) + fL * (this.ffMix * 0.85);
+        fwdR = sR * (1.0 - this.ffMix * 0.78) + fR * (this.ffMix * 0.85);
+      }
+
+      outL[i] = fwdL * (1.0 - this.revMix) + revL * this.revMix;
+      outR[i] = fwdR * (1.0 - this.revMix) + revR * this.revMix;
+    }
+    return true;
+  }
+}
+registerProcessor('tape-time-proc', TapeTimeProcessor);
+`;
 
 export class CosmicAudio {
   constructor() {
@@ -17,6 +188,10 @@ export class CosmicAudio {
     this.snRiserOsc1 = null;
     this.snRiserOsc2 = null;
     this.snRiserGain = null;
+    this.tapeRateParam = null;
+    this.tapeFallbackFilt = null;
+    this.sandNoiseBuf = null;
+    this.sandReverb = null;
   }
 
   init() {
@@ -36,9 +211,30 @@ export class CosmicAudio {
     const master = ctx.createGain();
     master.gain.value = 0.0001;
     master.gain.exponentialRampToValueAtTime(0.42, ctx.currentTime + 1.8);
-    comp.connect(master);
+    // Start directly connected, then transparently splice in the real-time 40s Reverse-Tape AudioWorklet once loaded!
+    const dryBypass = ctx.createGain();
+    dryBypass.gain.value = 1.0;
+    comp.connect(dryBypass);
+    dryBypass.connect(master);
     master.connect(ctx.destination);
     this.master = master;
+
+    if (ctx.audioWorklet) {
+      const blob = new Blob([TAPE_WORKLET_CODE], { type: 'application/javascript' });
+      const url = URL.createObjectURL(blob);
+      ctx.audioWorklet.addModule(url).then(() => {
+        URL.revokeObjectURL(url);
+        const tapeNode = new AudioWorkletNode(ctx, 'tape-time-proc', {
+          numberOfInputs: 1,
+          numberOfOutputs: 1,
+          outputChannelCount: [2],
+        });
+        comp.connect(tapeNode);
+        tapeNode.connect(master);
+        dryBypass.gain.setTargetAtTime(0.0, ctx.currentTime, 0.03);
+        this.tapeRateParam = tapeNode.parameters.get('rate');
+      }).catch(() => { URL.revokeObjectURL(url); });
+    }
 
     // 1. Procedural Lush Stereo Reverb Impulse (3.4s diffuse tail)
     const sr = ctx.sampleRate;
@@ -61,6 +257,7 @@ export class CosmicAudio {
     revWet.gain.value = 0.52;
     reverb.connect(revWet);
     revWet.connect(comp);
+    this.sandReverb = reverb;
 
     // 2. Seamless 4-second Pink/Brown Noise Buffer
     const nLen = sr * 4;
@@ -90,6 +287,7 @@ export class CosmicAudio {
       src.start();
       return src;
     };
+    this.sandNoiseBuf = nBuf;
 
     const mkLfo = (freq, depth, targetParam, phaseOffset = 0) => {
       const osc = ctx.createOscillator();
@@ -332,15 +530,18 @@ export class CosmicAudio {
     });
   }
 
-  // Called once per frame with zero allocations
-  update(wSea, wCath, wSpace, pulsePhase, supernova = 0.0) {
+  // Called once per frame with zero allocations (timeScale < 0 plays exact recorded stereo history BACKWARDS!)
+  update(wSea, wCath, wSpace, pulsePhase, supernova = 0.0, timeScale = 1.0) {
     if (!this.started || !this.ctx) return;
     const now = this.ctx.currentTime;
-    const tc = 0.25;
     const sn = Math.max(0, Math.min(1, supernova));
-    this.gAct1.gain.setTargetAtTime(Math.max(0.0001, wSea), now, 0.35);
-    this.gAct2.gain.setTargetAtTime(Math.max(0.0001, wCath), now, 0.35);
-    this.gAct3.gain.setTargetAtTime(Math.max(0.0001, wSpace * (1.0 - sn * 0.35)), now, 0.35);
+    if (this.tapeRateParam) {
+      this.tapeRateParam.setTargetAtTime(timeScale, now, 0.035);
+    }
+    const fastTc = Math.abs(timeScale) > 1.3 ? 0.10 : 0.35;
+    this.gAct1.gain.setTargetAtTime(Math.max(0.0001, wSea), now, fastTc);
+    this.gAct2.gain.setTargetAtTime(Math.max(0.0001, wCath), now, fastTc);
+    this.gAct3.gain.setTargetAtTime(Math.max(0.0001, wSpace * (1.0 - sn * 0.35)), now, fastTc);
     const pulseSw = Math.exp(-Math.pow((pulsePhase - 0.15) * 4.5, 2.0));
     this.pulseGain.gain.setTargetAtTime(Math.max(0.0001, wSpace * (0.28 + 0.72 * pulseSw)), now, 0.12);
 
@@ -363,6 +564,49 @@ export class CosmicAudio {
     // 4. Transcendent pure-white radiant choir swells from sn=0.45..1.0 and rings softly into the Start Menu!
     const choirEnv = sn > 0.35 ? Math.pow((sn - 0.35) / 0.65, 1.4) * 0.95 : 0.0;
     this.snChoirGain.gain.setTargetAtTime(Math.max(0.0001, choirEnv), now, sn > 0.01 ? 0.14 : 1.15);
+  }
+
+  // Cosmic stardust sand-wind sweep (forward when dissolving menu, exact time-reversed inward suction when reassembling menu!)
+  playSandSweep(reverse = false) {
+    if (!this.started || !this.ctx || !this.sandNoiseBuf || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const dur = 1.45;
+    const src = ctx.createBufferSource();
+    src.buffer = this.sandNoiseBuf;
+    src.loop = true;
+
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 2.4;
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 650;
+
+    const g = ctx.createGain();
+    if (!reverse) {
+      bp.frequency.setValueAtTime(900, now);
+      bp.frequency.exponentialRampToValueAtTime(4200, now + dur * 0.55);
+      bp.frequency.exponentialRampToValueAtTime(1600, now + dur);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.linearRampToValueAtTime(0.28, now + 0.16);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    } else {
+      bp.frequency.setValueAtTime(1500, now);
+      bp.frequency.exponentialRampToValueAtTime(4600, now + dur * 0.72);
+      bp.frequency.exponentialRampToValueAtTime(1050, now + dur);
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.30, now + dur * 0.84);
+      g.gain.linearRampToValueAtTime(0.0001, now + dur);
+    }
+
+    src.connect(hp);
+    hp.connect(bp);
+    bp.connect(g);
+    g.connect(this.master);
+    if (this.sandReverb) g.connect(this.sandReverb);
+    src.start(now);
+    src.stop(now + dur + 0.05);
   }
 
   toggleMute() {

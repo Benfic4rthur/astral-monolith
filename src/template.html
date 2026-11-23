@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ASTRAL MONOLITH — Three-Act WebGPU Cosmic Journey</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='bg' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%231a3468'/%3E%3Cstop offset='62%25' stop-color='%23080f24'/%3E%3Cstop offset='100%25' stop-color='%2303050d'/%3E%3C/radialGradient%3E%3CradialGradient id='star' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='38%25' stop-color='%23c8ecff'/%3E%3Cstop offset='100%25' stop-color='%234da8ff' stop-opacity='0'/%3E%3C/radialGradient%3E%3ClinearGradient id='gold' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ffd98e'/%3E%3Cstop offset='50%25' stop-color='%23d88c34'/%3E%3Cstop offset='100%25' stop-color='%23784414'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='31' fill='url(%23bg)'/%3E%3Cg fill='none' stroke-linecap='round'%3E%3Cellipse cx='32' cy='32' rx='26' ry='11' transform='rotate(-28 32 32)' stroke='url(%23gold)' stroke-width='2.6'/%3E%3Cellipse cx='32' cy='32' rx='24' ry='10' transform='rotate(26 32 32)' stroke='%23e7a950' stroke-width='2.2' opacity='.92'/%3E%3Cellipse cx='32' cy='32' rx='20' ry='8.5' transform='rotate(-72 32 32)' stroke='%2372c8ff' stroke-width='1.9' opacity='.88'/%3E%3Cellipse cx='32' cy='32' rx='15' ry='6.8' transform='rotate(64 32 32)' stroke='%23f5c470' stroke-width='2.0'/%3E%3Ccircle cx='32' cy='32' r='10.5' stroke='%23b5e2ff' stroke-width='1.3' opacity='.75'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='9' fill='url(%23star)'/%3E%3Ccircle cx='32' cy='32' r='3.6' fill='%23ffffff'/%3E%3C/svg%3E">
 <style>/*__CSS__*/</style>
 </head>
 <body>
@@ -11,7 +12,7 @@
 <div id="menu">
   <div class="panel">
     <div class="kicker">WebGPU Real-Time Procedural Journey</div>
-    <h1>Astral Monolith</h1>
+    <h1>Astral<br>Monolith</h1>
     <p class="sub">From a mirrored sea of crystal prisms, through an endless fractal cathedral shaft, out into a planetary orbital astrolabe.</p>
     <div class="bar-wrap"><div id="bar-fill"></div></div>
     <div id="load-status">Initializing…</div>
@@ -19,10 +20,11 @@
       <button id="btn-tour" class="btn primary">Guided Tour (90s)</button>
       <button id="btn-free" class="btn">Free Flight</button>
     </div>
-    <div class="keys"><b>WASD</b> Move &nbsp;·&nbsp; <b>Q / E</b> Down / Up &nbsp;·&nbsp; <b>Shift</b> Boost &nbsp;·&nbsp; <b>Mouse</b> Look<br><b>T</b> Toggle Guided Tour &nbsp;·&nbsp; <b>M</b> Mute Audio &nbsp;·&nbsp; <b>H</b> Toggle HUD</div>
+    <div class="keys"><b>A / D</b> Rewind (-3×) / Advance (3×) Tour &nbsp;·&nbsp; <b>WASD / Q / E</b> Free Flight &nbsp;·&nbsp; <b>Mouse</b> Look<br><b>T</b> Toggle Guided Tour &nbsp;·&nbsp; <b>M</b> Mute Audio &nbsp;·&nbsp; <b>H</b> Toggle HUD</div>
     <div id="err"></div>
   </div>
 </div>
+<canvas id="menu-sand"></canvas>
 <div id="hud">
   <div id="hud-left">
     <div id="hud-act">I · MIRRORED PRISM SEA</div>
